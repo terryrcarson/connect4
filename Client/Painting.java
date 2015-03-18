@@ -2,7 +2,7 @@ import java.awt.*;
 
 import javax.swing.*;
 
-public class Painting extends JPanel {
+public class Painting extends JComponent {
 	Client client = new Client();
 	//Game game = new Game();
 	private final int EMPTY = 0, RED = 1, BLACK = 2;

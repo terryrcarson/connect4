@@ -8,27 +8,28 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class GUI extends JPanel implements KeyListener, ActionListener {
-	//JFrame frame = new JFrame();
+	JFrame frame = new JFrame();
 	Painting painter = new Painting();
 	Timer timer;
 	//Intro intro = new Intro();
 	private Boolean introUp = true;
 	
 	public GUI() {
-    	/*frame.setTitle("Connect Four");
+    	frame.setTitle("Connect Four");
     	frame.setSize(600, 450);
     	frame.setResizable(false);
     	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	frame.setLocationRelativeTo(null);*/
-    	this.add(painter);
-    	addKeyListener(this);
+    	frame.setLocationRelativeTo(null);
+    	frame.add(painter);
+    	frame.addKeyListener(this);
     	timer = new Timer(250, this);
     	timer.start();
+    	frame.setVisible(true);
     }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		repaint();
+		frame.repaint();
 	}
 	
 	@Override
@@ -44,15 +45,15 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 		if ((i == KeyEvent.VK_RIGHT))
 		{
 			painter.client.sendMsg("MOVE 0");
-			repaint();
+			frame.repaint();
 		} else if ((i == KeyEvent.VK_LEFT))
 		{
 			painter.client.sendMsg("MOVE 1");
-			repaint();
+			frame.repaint();
 		} else if ((i == KeyEvent.VK_DOWN))
 		{
 			painter.client.sendMsg("PLACE");
-			repaint();
+			frame.repaint();
 		}
 	}
 	
@@ -66,6 +67,9 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 	@Override
 	public void keyTyped(KeyEvent e) {}
 
+	public static void main(String args[]) {
+		new GUI();
+	}
 }
 
 class Intro extends JPanel implements ActionListener {
@@ -114,19 +118,9 @@ class Intro extends JPanel implements ActionListener {
 			System.out.println("This name is too short");
 		} else {
 			frame.getContentPane().removeAll();
-			JFrame frame2 = new JFrame();
-			frame2.setTitle("Connect Four");
-    	frame2.setSize(600, 450);
-    	frame2.setResizable(false);
-    	frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	frame2.setLocationRelativeTo(null);
-			frame2.add(new GUI());
-			frame2.setVisible(true);
-			frame2.repaint();
+			frame.add(new GUI());
+			frame.repaint();
 		}
 	}
 	
-	public static void main(String args[]) {
-		new Intro();
-	}
 }

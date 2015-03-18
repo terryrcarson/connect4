@@ -40,6 +40,7 @@ public class Client {
 	 public void sendMsg(String msg) {
 		 try {
 	    	out.println(msg);
+	    	System.out.println(msg + " sent");
 		 } catch (Exception e) {
 			System.err.println(e);
 		 }

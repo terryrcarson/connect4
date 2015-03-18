@@ -32,7 +32,7 @@ public class LoginServer {
     	try {
     		Socket conn = servSock.accept();
     		players.addElement(new Player(conn));
-    		matchmaker.addPlayer(new Player(conn));
+    		//matchmaker.addPlayer(new Player(conn));
     		System.out.println("Connection from " + conn.getInetAddress());
     	} catch (Exception e) {
     		System.err.println(e);

@@ -53,7 +53,7 @@ public class Player {
     public void sendMsg(String msg) {
 		 try {
 	    	out.println(msg);
-	    	//System.out.println("Thread " + Thread.currentThread().getId() + ": " + msg + " sent");
+	    	System.out.println("Thread " + Thread.currentThread().getId() + ": " + msg + " sent");
 		 } catch (Exception e) {
 			System.err.println(e);
 		 }
@@ -61,7 +61,7 @@ public class Player {
     
     public String readMsg() {
 		try {
-			return in.readLine().replaceAll("[^0-9A-Z.]", "");
+			return in.readLine().replaceAll("[^0-9 A-Z.]", "");
 		} catch (IOException e) {
 			System.err.println(e);
 		}

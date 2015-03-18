@@ -122,7 +122,7 @@ public class Game extends Thread {
 	}
 	
 	public void handleMsg(String msg, int i) {
-		//System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + i+ ": " + msg);
+		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + i+ ": " + msg);
 		if (msg.startsWith("MOVE") && currPlayer == i) {
 			int dir = Integer.valueOf(msg.substring(5, 6));
 			movePiece(dir);
