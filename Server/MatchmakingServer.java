@@ -39,7 +39,7 @@ public class MatchmakingServer extends Thread {
     				System.out.println(playerarr[i]);
     			}
     			if (getPlayerByName(playerarr[0]).getAvail() && getPlayerByName(playerarr[1]).getAvail()) {
-    				new Challenge(getPlayerByName(playerarr[0]), getPlayerByName(playerarr[1]));
+    				new Challenge(getPlayerByName(playerarr[0]), getPlayerByName(playerarr[1])).start();
     			} else {
     				getPlayerByName(playerarr[0]).sendMsg("UNAVAIL");
     			}

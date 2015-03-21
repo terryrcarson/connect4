@@ -28,7 +28,7 @@ public class Game extends Thread {
 	@Override
 	public void run() {
 		String msg;
-		while (checkWinner() == 0) {
+		while (checkWinner() == 0 && !Thread.currentThread().isInterrupted()) {
 			//System.out.println(player[currPlayer].readMsg());
 			//for each player, check if they sent something and handle it
 			for (int i = 1; i < 3; i++) {
@@ -138,6 +138,8 @@ public class Game extends Thread {
 			player[i].sendMsg(serializeBoard());
 		} else if (msg.equals("REQUESTPIECELOC")) {
 			player[i].sendMsg(serializePieceLoc());
+		} else if (msg.equals("Disconnected")) {
+			Thread.currentThread().interrupt();
 		}
 	}
 	

@@ -70,9 +70,12 @@ public class Player extends Thread {
     				} else {
     					sendMsg("YES");
     				}
+    			} else if (msg.equals("REQUESTBOARD")) {
+    				sendMsg("000000000000000000000000000000000000000000000000");
     			}
     		}
     	}
+    	System.out.println("Thread " + Thread.currentThread().getId() + " terminating");
     }
     
     public synchronized void updateAvailPlayers(Vector<Player> players) {

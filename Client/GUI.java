@@ -147,7 +147,8 @@ class MatchMaking extends JPanel implements ActionListener {
 	JList<String> pList;
 	JButton challengeButton;
 	Timer timer;
-	String currentSelected;
+	String challengerName;
+	Boolean challenged = false, isChallenger = false;
 	
 	public MatchMaking(){}
 	
@@ -165,20 +166,28 @@ class MatchMaking extends JPanel implements ActionListener {
 			if (pList.getSelectedValue() == null) {
 				//do nothing
 			} else {
+				isChallenger = true;
 				switch(client.challengePlayer(name, pList.getSelectedValue())) {
 					case "NO":
 						//open dialog
 						break;
 					case "STARTGAME":
-						new GUI(client);
 						frame.setVisible(false);
+						new GUI(client);
 						break;
 				}
 			}
 		} else if (e.getSource() == timer) {
-			pList.setModel(client.getAvailPlayers());
-			if (client.isChallenged()) {
-				System.out.println("Challenge from " + client.getChallenger());
+			if(!challenged && !isChallenger) {
+				if (client.isChallenged()) {
+					//System.out.println("Challenge from " + client.getChallenger());
+					new ChallengeDialog(client.getChallenger(), client, frame);
+					challenged = true;
+					
+				}
+				if (!challenged) {
+					pList.setModel(client.getAvailPlayers());
+				}
 			}
 		}
 	}
@@ -227,4 +236,53 @@ class MatchMaking extends JPanel implements ActionListener {
     	frame.add(this);
     	frame.setVisible(true);
     }
+}
+
+class ChallengeDialog implements ActionListener {
+	
+	JButton yes;
+	JButton no;
+	Client client;
+	JFrame frame, prevFrame;
+	
+	public ChallengeDialog(String name, Client client, JFrame prevFrame) {
+		this.client = client;
+		this.prevFrame = prevFrame;
+		frame = new JFrame();
+		frame.setTitle("Connect Four");
+    	frame.setSize(275, 100);
+    	frame.setResizable(false);
+    	//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	frame.setLocationRelativeTo(null);
+    	JPanel container = new JPanel();
+    	container.setLayout(new BorderLayout());
+    	JLabel msg = new JLabel("You have been challenged by " + name);
+    	container.add(msg, BorderLayout.NORTH);
+    	JPanel bottom = new JPanel();
+    	bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
+    	yes = new JButton("Accept");
+    	no = new JButton("Reject");
+    	yes.addActionListener(this);
+    	no.addActionListener(this);
+    	bottom.add(yes);
+    	bottom.add(no);
+    	container.add(bottom, BorderLayout.SOUTH);
+    	frame.add(container);
+    	frame.setVisible(true);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == yes) {
+			client.sendMsg("OK");
+			frame.setVisible(false);
+			prevFrame.setVisible(false);
+			new GUI(client);
+		} else if (e.getSource() == no) {
+			client.sendMsg("NO");
+			frame.setVisible(false);
+		}
+		
+	}
+	
 }

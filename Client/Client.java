@@ -16,7 +16,7 @@ public class Client {
 	public Client() {
 		try {
 			System.out.println("Connecting...");
-			conn = new Socket("localhost", 6666);
+			conn = new Socket("terrycarson.com", 6666);
 			System.out.println("Connected!");
 			out = new PrintWriter(conn.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));

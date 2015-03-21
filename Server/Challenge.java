@@ -22,9 +22,7 @@ public class Challenge extends Thread {
     
     @Override
     public void run() {
-    	while (!p2.readMsg().equals("WHOCHALLENGED")) {
-    		//do nothing
-    	}
+    	System.out.println(p2.readMsg());
     	p2.sendMsg(p1.getPName());
     	String msg = p2.readMsg();
     	switch(msg) {
@@ -33,6 +31,8 @@ public class Challenge extends Thread {
     			p1.sendMsg("STARTGAME");
     			p1.setInGame(true);
     			p2.setInGame(true);
+    			p1.interrupt();
+    			p2.interrupt();
     			break;
     		case "NO":
     			p1.sendMsg("NO");
