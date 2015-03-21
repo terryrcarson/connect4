@@ -6,49 +6,83 @@
  * @version 1.00 2015/3/17
  */
 
+/*needs to create challenges between players
+ *objectives:
+ *1. listen for challenges
+ *2. push available players to player threads
+ */
 
 import java.util.Vector;
+import java.util.StringTokenizer;
+import java.util.concurrent.BlockingQueue;
 
 public class MatchmakingServer extends Thread {
 	
 	Vector<Player> players = new Vector<Player>();
+	private final BlockingQueue queue;
 	
-    public MatchmakingServer() {
+    public MatchmakingServer(BlockingQueue q) {
+    	queue = q;
     	System.out.println("Thread " + Thread.currentThread().getId() + ": Matchmaking server started");
     }
     
     @Override
     public void run() {
-    	String msg, pName;
-    	Player target = new Player();
-    	//receive challenge requests
-    	//make new challenge thread if requested player is available
-    	//also sends list of available players to clients
+    	String msg;
+    	String[] playerarr = new String[2];
     	while (true) {
-    		for (int i = 0; i < players.size(); i++) {
-    			if ((msg = players.get(i).readMsg()) != null) {
-    				if (msg.startsWith("CHALLENGE")) {
-    					pName = msg.substring(10, msg.length() - 1);
-    					if (getPlayerByName(pName).getAvail()) {
-    						new Challenge(players.get(i), getPlayerByName(pName));
-    					} else {
-    						players.get(i).sendMsg("UNAVAIL");
-    					}	
-    				} else if (msg.equals("REQUESTPLAYERS")) {
-    					players.get(i).sendMsg(getAvailablePlayers());
-    				}
+    		msg = (String) queue.poll();
+    		if (msg != null) {
+    			StringTokenizer strtok = new StringTokenizer(msg, " ");
+    			for (int i = 0; i < 2; i++) {
+    				playerarr[i] = strtok.nextToken();
+    				System.out.println(playerarr[i]);
     			}
+    			if (getPlayerByName(playerarr[0]).getAvail() && getPlayerByName(playerarr[1]).getAvail()) {
+    				new Challenge(getPlayerByName(playerarr[0]), getPlayerByName(playerarr[1]));
+    			} else {
+    				getPlayerByName(playerarr[0]).sendMsg("UNAVAIL");
+    			}
+    		}
+    		removeDeadThreads();
+    		for (int i = 0; i < players.size(); i++) {
+    			players.get(i).updateAvailPlayers(players);
     		}
     	}
     }
     
+    public void removeDeadThreads() {
+    	for (int i = 0; i < players.size(); i++) {
+    		if (players.get(i).getInGame()) {
+    			players.removeElementAt(i);
+    		} else if (!players.get(i).isAlive()) {
+    			players.removeElementAt(i);
+    		}
+    	}
+    }
+    
+    public void removeDisconnectedPlayer(int i) {
+    	players.removeElementAt(i);
+    	System.out.println("Player " + i + " has disconnected");
+    }
+    
     public void addPlayer(Player p) {
     	players.addElement(p);
+    	System.out.println("Player added, there are now " + players.size() + " players");
+    }
+    
+    public Player getPlayerByID(int ID) {
+    	for (int i = 0; i < players.size(); i++) {
+    		if (players.get(i).getPID() == ID) {
+    			return players.get(i);
+    		}
+    	}
+    	return null;
     }
     
     public Player getPlayerByName(String name) {
     	for (int i = 0; i < players.size(); i++) {
-    		if (players.get(i).getName().equals(name)) {
+    		if (players.get(i).getPName().equals(name)) {
     			return players.get(i);
     		}
     	}
@@ -59,7 +93,7 @@ public class MatchmakingServer extends Thread {
     	String msg = "";
     	for (int i = 0; i < players.size(); i++) {
     		if (players.get(i).getAvail()) {
-    			msg += players.get(i).getName() + " ";
+    			msg += players.get(i).getPName() + " ";
     		}
     	}
     	return msg;

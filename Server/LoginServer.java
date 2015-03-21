@@ -8,12 +8,16 @@
  */
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class LoginServer {
 	
+	BlockingQueue queue = new ArrayBlockingQueue<String>(50);
 	Vector<Player> players = new Vector<Player>();
 	ServerSocket servSock;
 	MatchmakingServer matchmaker;
+	private int ID = 0;
 	
     public LoginServer() {
     	try {
@@ -25,15 +29,18 @@ public class LoginServer {
     }
     
     public void initMatchmaker() {
-    	matchmaker = new MatchmakingServer();
+    	matchmaker = new MatchmakingServer(queue);
+    	matchmaker.start();
     }
     
     public void listenConnect() {
     	try {
     		Socket conn = servSock.accept();
-    		players.addElement(new Player(conn));
-    		//matchmaker.addPlayer(new Player(conn));
+    		//players.addElement(new Player(conn));
     		System.out.println("Connection from " + conn.getInetAddress());
+    		//new Player(conn, queue, ID).start();
+    		matchmaker.addPlayer(new Player(conn, queue, ID));
+    		ID++;
     	} catch (Exception e) {
     		System.err.println(e);
     	}	
@@ -43,16 +50,16 @@ public class LoginServer {
     	
     	LoginServer serv = new LoginServer();
     	
-    	while (serv.players.size() < 2) {
+    	/*while (serv.players.size() < 2) {
     		serv.listenConnect();
     	}
-    	new Game(serv.players.get(0), serv.players.get(1)).start();
+    	new Game(serv.players.get(0), serv.players.get(1)).start();*/
     	
-    	/*serv.initMatchmaker();
+    	serv.initMatchmaker();
     	
     	while (true) {
     		serv.listenConnect();
-    	}*/
+    	}
     	
     	
     }

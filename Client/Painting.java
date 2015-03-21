@@ -3,9 +3,15 @@ import java.awt.*;
 import javax.swing.*;
 
 public class Painting extends JComponent {
-	Client client = new Client();
+	Client client;
 	//Game game = new Game();
 	private final int EMPTY = 0, RED = 1, BLACK = 2;
+	
+	public Painting() {}
+	
+	public Painting(Client c) {
+		client = c;
+	}
 	
 	@Override
 	protected void paintComponent(Graphics g) {

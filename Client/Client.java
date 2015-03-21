@@ -3,6 +3,8 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
+import javax.swing.DefaultListModel;
+
 public class Client {
 	
 	private Socket conn;
@@ -26,11 +28,11 @@ public class Client {
 	public String readMsg() {
 		try {
 			String msg = in.readLine();
-			System.out.println(msg.replaceAll("[^0-9A-Z.]", "") + " received");
+			System.out.println(msg.replaceAll("[^0-9 A-Za-z.]", "") + " received");
 			if (msg.startsWith("GAMEOVER")) {
 				
 			}
-			return msg.replaceAll("[^0-9A-Z.]", "");
+			return msg.replaceAll("[^0-9 A-Za-z.]", "");
 		} catch (IOException e) {
 			System.err.println(e);
 		}
@@ -93,13 +95,67 @@ public class Client {
 		return null;
 	}
 	
-	public static void main(String args[]) {
+	public DefaultListModel<String> getAvailPlayers() {
+		DefaultListModel<String> players = new DefaultListModel<String>();
+		try {
+			sendMsg("REQUESTPLAYERS");
+			String msg = readMsg();
+			StringTokenizer tokenizer = new StringTokenizer(msg, " ");
+			while (tokenizer.hasMoreElements()) {
+				players.addElement(tokenizer.nextToken());
+			}
+			return players;
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return null;
+	}
+	
+	public String challengePlayer(String thisPlayer, String targetPlayer) {
+		try {
+			sendMsg("CHALLENGE " + thisPlayer + " " + targetPlayer);
+			return readMsg();
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return null;
+	}
+	
+	public boolean isChallenged() {
+		try {
+			sendMsg("AMICHALLENGED");
+			switch (readMsg()) {
+				case "YES":
+					System.out.println("challenged");
+					return true;
+					
+				case "NO":
+					return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return false;
+	}
+	
+	public String getChallenger() {
+		try {
+			sendMsg("WHOCHALLENGED");
+			return readMsg();
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return null;
+	}
+	
+	
+	/*public static void main(String args[]) {
 		Client client = new Client();
 		
 		//client.getBoard();
 		client.getBoard();
 		client.getPieceLoc();
 		client.getCurrPlayer();
-	}
+	}*/
 	
 }
