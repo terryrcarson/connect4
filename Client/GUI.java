@@ -17,12 +17,14 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 	Painting painter;
 	Timer timer;
 	//Intro intro = new Intro();
-	private Boolean introUp = true;
+	private String p1Name, p2Name;
 	
 	public GUI() {}
 	
-	public GUI(Client c) {
-		painter = new Painting(c);
+	public GUI(Client c, String p1Name, String p2Name) {
+		this.p1Name = p1Name;
+		this.p2Name = p2Name;
+		painter = new Painting(c, p1Name, p2Name);
     	frame.setTitle("Connect Four");
     	frame.setSize(600, 450);
     	frame.setResizable(false);
@@ -37,7 +39,10 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		frame.repaint();
+		if (!painter.getGameOver()) {
+			frame.repaint();
+		}
+		//System.out.println("terminated");
 	}
 	
 	@Override
@@ -147,7 +152,7 @@ class MatchMaking extends JPanel implements ActionListener {
 	JList<String> pList;
 	JButton challengeButton;
 	Timer timer;
-	String challengerName;
+	String challengerName, targetPlayer;
 	Boolean challenged = false, isChallenger = false;
 	
 	public MatchMaking(){}
@@ -167,13 +172,14 @@ class MatchMaking extends JPanel implements ActionListener {
 				//do nothing
 			} else {
 				isChallenger = true;
-				switch(client.challengePlayer(name, pList.getSelectedValue())) {
+				switch(client.challengePlayer(name, (targetPlayer = pList.getSelectedValue()))) {
 					case "NO":
-						//open dialog
+						new ChallengeRejected(targetPlayer);
+						isChallenger = false;
 						break;
 					case "STARTGAME":
 						frame.setVisible(false);
-						new GUI(client);
+						new GUI(client, name, targetPlayer);
 						break;
 				}
 			}
@@ -181,7 +187,7 @@ class MatchMaking extends JPanel implements ActionListener {
 			if(!challenged && !isChallenger) {
 				if (client.isChallenged()) {
 					//System.out.println("Challenge from " + client.getChallenger());
-					new ChallengeDialog(client.getChallenger(), client, frame);
+					new ChallengeDialog(client.getChallenger(), client, frame, name);
 					challenged = true;
 					
 				}
@@ -244,8 +250,11 @@ class ChallengeDialog implements ActionListener {
 	JButton no;
 	Client client;
 	JFrame frame, prevFrame;
+	String name, thisPlayerName;
 	
-	public ChallengeDialog(String name, Client client, JFrame prevFrame) {
+	public ChallengeDialog(String name, Client client, JFrame prevFrame, String thisPlayerName) {
+		this.name = name;
+		this.thisPlayerName = thisPlayerName;
 		this.client = client;
 		this.prevFrame = prevFrame;
 		frame = new JFrame();
@@ -277,12 +286,47 @@ class ChallengeDialog implements ActionListener {
 			client.sendMsg("OK");
 			frame.setVisible(false);
 			prevFrame.setVisible(false);
-			new GUI(client);
+			new GUI(client, name, thisPlayerName);
 		} else if (e.getSource() == no) {
 			client.sendMsg("NO");
 			frame.setVisible(false);
 		}
 		
+	}
+	
+}
+
+class ChallengeRejected implements ActionListener {
+	
+	JButton ok;
+	JFrame frame;
+	
+	public ChallengeRejected(String name) {
+		frame = new JFrame();
+		frame.setTitle("Connect Four");
+    	frame.setSize(275, 100);
+    	frame.setResizable(false);
+    	//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	frame.setLocationRelativeTo(null);
+    	JPanel container = new JPanel();
+    	container.setLayout(new BorderLayout());
+    	JLabel msg = new JLabel(name + " has rejected your challenge.");
+    	container.add(msg, BorderLayout.NORTH);
+    	JPanel bottom = new JPanel();
+    	bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
+    	ok = new JButton("Ok");
+    	ok.addActionListener(this);
+    	bottom.add(ok);
+    	container.add(bottom, BorderLayout.SOUTH);
+    	frame.add(container);
+    	frame.setVisible(true);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == ok) {
+			frame.setVisible(false);
+		}
 	}
 	
 }

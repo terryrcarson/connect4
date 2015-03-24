@@ -82,6 +82,19 @@ public class Board {
 		return 0;
 	}
 	
+	public int checkWinner() {
+		if (checkDiag() > 0) {
+			return checkDiag();
+		} else if (checkHoriz() > 0) {
+			return checkHoriz();
+		} else if (checkVert() > 0) {
+			return checkVert();
+		} else if (isTied()) {
+			return 3;
+		}
+		return 0;
+	}
+	
 	public void printCoords() {
 		for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 6; y++) {

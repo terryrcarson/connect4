@@ -13,10 +13,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class LoginServer {
 	
-	BlockingQueue queue = new ArrayBlockingQueue<String>(50);
-	Vector<Player> players = new Vector<Player>();
-	ServerSocket servSock;
-	MatchmakingServer matchmaker;
+	private BlockingQueue queue = new ArrayBlockingQueue<String>(50);
+	private Vector<Player> players = new Vector<Player>();
+	private ServerSocket servSock;
+	private MatchmakingServer matchmaker;
 	private int ID = 0;
 	
     public LoginServer() {

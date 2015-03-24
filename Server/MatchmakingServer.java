@@ -18,7 +18,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class MatchmakingServer extends Thread {
 	
-	Vector<Player> players = new Vector<Player>();
+	private Vector<Player> players = new Vector<Player>();
 	private final BlockingQueue queue;
 	
     public MatchmakingServer(BlockingQueue q) {
@@ -36,7 +36,7 @@ public class MatchmakingServer extends Thread {
     			StringTokenizer strtok = new StringTokenizer(msg, " ");
     			for (int i = 0; i < 2; i++) {
     				playerarr[i] = strtok.nextToken();
-    				System.out.println(playerarr[i]);
+    				//System.out.println(playerarr[i]);
     			}
     			if (getPlayerByName(playerarr[0]).getAvail() && getPlayerByName(playerarr[1]).getAvail()) {
     				new Challenge(getPlayerByName(playerarr[0]), getPlayerByName(playerarr[1])).start();

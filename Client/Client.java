@@ -12,11 +12,12 @@ public class Client {
 	private BufferedReader in;
 	private Cell[][] board = new Cell[7][6];
 	private Cell currPieceLoc = new Cell();
+	private Boolean isGameOver = false;
 	
 	public Client() {
 		try {
 			System.out.println("Connecting...");
-			conn = new Socket("terrycarson.com", 6666);
+			conn = new Socket("localhost", 6666);
 			System.out.println("Connected!");
 			out = new PrintWriter(conn.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -28,11 +29,14 @@ public class Client {
 	public String readMsg() {
 		try {
 			String msg = in.readLine();
-			System.out.println(msg.replaceAll("[^0-9 A-Za-z.]", "") + " received");
 			if (msg.startsWith("GAMEOVER")) {
-				
+				isGameOver = true;
+				System.out.println("Game over is now true");
 			}
-			return msg.replaceAll("[^0-9 A-Za-z.]", "");
+			System.out.println(msg.replaceAll("[^-0-9 A-Za-z.]", "") + " received");
+			return msg.replaceAll("[^-0-9 A-Za-z.]", "");
+		} catch (NullPointerException e) {
+			isGameOver = true;
 		} catch (IOException e) {
 			System.err.println(e);
 		}
@@ -50,10 +54,15 @@ public class Client {
 	
 	public int getCurrPlayer() {
 		try {
-			out.println("REQUESTCURRPLAYER");
+			sendMsg("REQUESTCURRPLAYER");
 			String msg = readMsg();
+			if (msg.startsWith("GAMEOVER")) {
+				msg = readMsg();
+			}
 			//System.out.println(msg);
 			return Character.getNumericValue(msg.charAt(0));
+		} catch (NullPointerException e) {
+			isGameOver = true;
 		} catch (Exception e) {
 			System.err.println(e);
 		}
@@ -62,12 +71,20 @@ public class Client {
 	
 	public Cell getPieceLoc() {
 		try {
-			out.println("REQUESTPIECELOC");
+			sendMsg("REQUESTPIECELOC");
 			String msg = readMsg();
+			if (msg.startsWith("GAMEOVER")) {
+				msg = readMsg();
+			} 
+			if (msg.equals("-1-1")) {
+				return new Cell(-1, -1);
+			}
 			int x = Character.getNumericValue(msg.charAt(0));
 			int y = Character.getNumericValue(msg.charAt(1));
 			System.out.println("x: " + x + ", y: " + y);
 			return new Cell(x, y);
+		} catch (NullPointerException e) {
+			isGameOver = true;
 		} catch (Exception e) {
 			System.err.println(e);
 		}
@@ -78,8 +95,11 @@ public class Client {
 		Cell[][] board = new Cell[7][6];
 		int i = 0;
 		try {
-			out.println("REQUESTBOARD");
+			sendMsg("REQUESTBOARD");
 			String msg = readMsg();
+			if (msg.startsWith("GAMEOVER")) {
+				msg = readMsg();
+			}
 			//System.out.println(msg);
 			for (int x = 0; x < 7; x++) {
 				for (int y = 0; y < 6; y++) {
@@ -89,10 +109,29 @@ public class Client {
 				}
 			}
 			return board;
+		} catch (NullPointerException e) {
+			isGameOver = true;
 		} catch (Exception e) {
 			System.err.println(e);
 		}
 		return null;
+	}
+	
+	public int getWinner() {
+		try {
+			sendMsg("REQUESTWINNER");
+			String msg = readMsg();
+			if (msg.startsWith("GAMEOVER")) {
+				msg = readMsg();
+			}
+			//System.out.println(msg);
+			return Character.getNumericValue(msg.charAt(0));
+		} catch (NullPointerException e) {
+			isGameOver = true;
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return 0;
 	}
 	
 	public DefaultListModel<String> getAvailPlayers() {
@@ -148,6 +187,9 @@ public class Client {
 		return null;
 	}
 	
+	public Boolean getGameOver() {
+		return isGameOver;
+	}
 	
 	/*public static void main(String args[]) {
 		Client client = new Client();
