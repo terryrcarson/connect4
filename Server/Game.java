@@ -16,7 +16,7 @@ public class Game extends Thread {
 	private final int RED = 1, BLACK = 2;
 	private Cell currPieceLoc;
 	private Player player[];
-	private ExecutorService service = Executors.newSingleThreadExecutor();
+	private Boolean playerDced = false;
 	
 	public Game() {
 		currPlayer = RED;
@@ -36,8 +36,6 @@ public class Game extends Thread {
 	public void run() {
 		String msg;
 		while (checkWinner() == 0 && !Thread.currentThread().isInterrupted()) {
-			//System.out.println(player[currPlayer].readMsg());
-			//for each player, check if they sent something and handle it
 			for (int i = 1; i < 3; i++) {
 				if ((msg = player[i].readMsg()) != null) {
 					handleMsg(msg, i);
@@ -45,33 +43,28 @@ public class Game extends Thread {
 			}
 		}
 		gameOver();
-		for (int i = 1; i < 3; i++) {
-			player[i].sendMsg("GAMEOVER " + checkWinner());
-		}
-		/*while (true) {
+		if (player[BLACK].getDisconnected()) {
+			playerDced = true;
+			player[RED].sendMsg("GAMEOVER 4");
+			FinalMessageHandler handler2 = new FinalMessageHandler(player[RED]);
+		} else if (player[RED].getDisconnected()) {
+			playerDced = true;
+			player[BLACK].sendMsg("GAMEOVER 4");
+			FinalMessageHandler handler1 = new FinalMessageHandler(player[BLACK]);
+		} else {
 			for (int i = 1; i < 3; i++) {
-				if ((msg = player[i].readMsg()) != null) {
-					Future<Void> future = service.submit(new MessageHandler(msg, i));
-					try {
-						future.get(10, TimeUnit.SECONDS);
-					} catch (TimeoutException e) {
-						System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread terminating");
-						break;
-					} catch (Exception e) {
-						System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread terminating");
-						break;
-					}
-				}
+				player[i].sendMsg("GAMEOVER " + checkWinner());
 			}
-			break;
+			FinalMessageHandler handler1 = new FinalMessageHandler(player[BLACK]);
+			FinalMessageHandler handler2 = new FinalMessageHandler(player[RED]);
+		}
+		/*while((!handler1.isInterrupted() && !handler2.isInterrupted()) || (handler1.isInterrupted() && !handler2.isInterrupted()) || (!handler1.isInterrupted() && handler2.isInterrupted())) {
+			//do nothing
 		}*/
-		for (int x = 0; x < 10; x++) {
-			for (int i = 1; i < 3; i++) {
-				if ((msg = player[i].readMsg()) != null) {
-					handleMsg(msg, i);
-				}
-			}
-		}
+		System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread terminating");
+		//player[BLACK].resetBools();
+		//player[RED].resetBools();
+		
 	}
 	
 	public void setCurrPlayer(int player) {
@@ -161,7 +154,11 @@ public class Game extends Thread {
 		} else if (msg.equals("Disconnected")) {
 			Thread.currentThread().interrupt();
 		} else if (msg.equals("REQUESTWINNER")) {
-			player[i].sendMsg(String.valueOf(checkWinner()));
+			if (playerDced) {
+				player[i].sendMsg("4");
+			} else {
+				player[i].sendMsg(String.valueOf(checkWinner()));
+			}
 		}
 	}
 	
@@ -178,48 +175,44 @@ public class Game extends Thread {
 		}
 		return msg;
 	}
-	
-	/*public static void main(String args[]) {
-		Game g = new Game();
-		System.out.println(g.serializeBoard());
-		System.out.println(g.serializePieceLoc());
-	}*/
-	class MessageHandler implements Callable<Void> {
+
+	class FinalMessageHandler extends Thread {
 		
-		private String msg;
-		private int i;
+		private Player p;
 		
-		public MessageHandler(String msg, int i) {
-			this.msg = msg;
-			this.i = i;
+		public FinalMessageHandler(Player p) {
+			this.p = p;
+			start();
 		}
 		
 		@Override
-		public Void call() throws Exception {
-			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + i+ ": " + msg);
-			if (msg.startsWith("MOVE") && currPlayer == i) {
-				int dir = Integer.valueOf(msg.substring(5, 6));
-				movePiece(dir);
-			} else if (msg.startsWith("PLACE") && currPlayer == i) {
-				if (board.isColFull(currPieceLoc.getX())) {
-				} else {
-					board.addPiece(currPieceLoc.getX(), currPlayer);
-					switchPlayers();
+		public void run() {
+			System.out.println("Thread " + Thread.currentThread().getId() + ": final thread started");
+			while (!(msg = p.readMsg()).equals("DONE") && (!Thread.currentThread().isInterrupted())) {
+				if (msg.equals("REQUESTCURRPLAYER")) {
+					p.sendMsg(String.valueOf(getCurrPlayer()));
+				} else if (msg.equals("REQUESTBOARD")) {
+					p.sendMsg(serializeBoard());
+				} else if (msg.equals("REQUESTPIECELOC")) {
+					p.sendMsg(serializePieceLoc());
+				} else if (msg.equals("Disconnected")) {
+					Thread.currentThread().interrupt();
+					System.out.println("d/c");
+				} else if (msg.equals("REQUESTWINNER")) {
+					if (playerDced) {
+						p.sendMsg("4");
+					} else {
+						p.sendMsg(String.valueOf(checkWinner()));
+					}
 				}
-			} else if (msg.equals("REQUESTCURRPLAYER")) {
-				player[i].sendMsg(String.valueOf(getCurrPlayer()));
-			} else if (msg.equals("REQUESTBOARD")) {
-				player[i].sendMsg(serializeBoard());
-			} else if (msg.equals("REQUESTPIECELOC")) {
-				player[i].sendMsg(serializePieceLoc());
-			} else if (msg.equals("Disconnected")) {
-				Thread.currentThread().interrupt();
-			} else if (msg.equals("REQUESTWINNER")) {
-				player[i].sendMsg(String.valueOf(checkWinner()));
 			}
-			return null;
+			synchronized (p.syncObj) {
+				p.syncObj.notify();
+				
+			}
+			System.out.println("Thread " + Thread.currentThread().getId() + ": DONE received, terminating");
+			Thread.currentThread().interrupt();
 		}
-		
 	}
 }
 

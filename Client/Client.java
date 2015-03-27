@@ -2,7 +2,15 @@
 import java.net.*;
 import java.util.*;
 import java.io.*;
-
+import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import javax.swing.DefaultListModel;
 
 public class Client {
@@ -12,16 +20,17 @@ public class Client {
 	private BufferedReader in;
 	private Cell[][] board = new Cell[7][6];
 	private Cell currPieceLoc = new Cell();
-	private Boolean isGameOver = false;
+	private Boolean isGameOver = false, serverDisconnected = false;
 	
 	public Client() {
 		try {
 			System.out.println("Connecting...");
-			conn = new Socket("localhost", 6666);
+			conn = new Socket("localhost", 6664);
 			System.out.println("Connected!");
 			out = new PrintWriter(conn.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		} catch (Exception e) {
+			new ErrorDialog("Unable to connect to server");
 			System.err.println("Constructor error:" + e);
 		}
 	}
@@ -37,6 +46,12 @@ public class Client {
 			return msg.replaceAll("[^-0-9 A-Za-z.]", "");
 		} catch (NullPointerException e) {
 			isGameOver = true;
+			serverDisconnected = true;
+			new ErrorDialog("You have disconnected from the server");
+		} catch (SocketException e) {
+			isGameOver = true;
+			serverDisconnected = true;
+			new ErrorDialog("You have disconnected from the server");
 		} catch (IOException e) {
 			System.err.println(e);
 		}
@@ -191,13 +206,49 @@ public class Client {
 		return isGameOver;
 	}
 	
-	/*public static void main(String args[]) {
-		Client client = new Client();
-		
-		//client.getBoard();
-		client.getBoard();
-		client.getPieceLoc();
-		client.getCurrPlayer();
-	}*/
+	public Boolean isNameTaken(String name) {
+		try {
+			sendMsg("ISNAMETAKEN " + name);
+			return Boolean.parseBoolean(readMsg());
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		return false;
+	}
+	
+	class ErrorDialog implements ActionListener {
+	
+	JButton ok;
+	JFrame frame;
+	
+	public ErrorDialog(String error) {
+		frame = new JFrame();
+		frame.setTitle("Connect Four");
+    	frame.setSize(275, 100);
+    	frame.setResizable(false);
+    	//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	frame.setLocationRelativeTo(null);
+    	JPanel container = new JPanel();
+    	container.setLayout(new BorderLayout());
+    	JLabel msg = new JLabel(error);
+    	container.add(msg, BorderLayout.NORTH);
+    	JPanel bottom = new JPanel();
+    	bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
+    	ok = new JButton("Ok");
+    	ok.addActionListener(this);
+    	bottom.add(ok);
+    	container.add(bottom, BorderLayout.SOUTH);
+    	frame.add(container);
+    	frame.setVisible(true);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == ok) {
+			frame.setVisible(false);
+		}
+	}
+	
+}
 	
 }

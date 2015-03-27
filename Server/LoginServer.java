@@ -21,10 +21,11 @@ public class LoginServer {
 	
     public LoginServer() {
     	try {
-    		servSock = new ServerSocket(6666);
+    		servSock = new ServerSocket(6664);
     		System.out.println("Login server started");
     	} catch (Exception e) {
     		System.err.println("Error creating socket: " + e);
+    		System.exit(1);
     	}
     }
     

@@ -53,9 +53,13 @@ public class MatchmakingServer extends Thread {
     
     public void removeDeadThreads() {
     	for (int i = 0; i < players.size(); i++) {
-    		if (players.get(i).getInGame()) {
+    		/*if (players.get(i).getInGame()) {
     			players.removeElementAt(i);
     		} else if (!players.get(i).isAlive()) {
+    			players.removeElementAt(i);
+    		}*/
+    		if (players.get(i).getDisconnected()) {
+    			System.out.println("Player " + players.get(i).getPName() + " removed from list");
     			players.removeElementAt(i);
     		}
     	}

@@ -18,7 +18,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class Player extends Thread {
 	
-	private Boolean isAvail, inGame;
+	private volatile Boolean isAvail, inGame, isDisconnected;
 	private String name;
 	private Socket conn;
 	private PrintWriter out;
@@ -26,14 +26,14 @@ public class Player extends Thread {
 	private Vector<Player> players = new Vector<Player>();
 	private final BlockingQueue queue;
 	private final int ID;
-	
-    //public Player() { queue = null; }
+	public final Object syncObj = new Object();
     
     public Player(Socket sock, BlockingQueue q, int ID) {
     	queue = q;
     	conn = sock;
     	isAvail = true;
     	inGame = false;
+    	isDisconnected = false;
     	this.ID = ID;
     	try {
     		out = new PrintWriter(conn.getOutputStream(), true);
@@ -44,9 +44,12 @@ public class Player extends Thread {
     	start();
     }
     
+    //while not disconnected
     @Override
     public void run() {
     	String msg, pName;
+    	while (!isDisconnected) {
+    		System.out.println("Thread " + Thread.currentThread().getId() + ": player thread starting");
     	while (!inGame && !Thread.currentThread().isInterrupted()) {
     		if (!isAvail) { }
     		else if ((msg = readMsg()) != null) {
@@ -72,8 +75,24 @@ public class Player extends Thread {
     				}
     			} else if (msg.equals("REQUESTBOARD")) {
     				sendMsg("000000000000000000000000000000000000000000000000");
+    			} else if (msg.startsWith("ISNAMETAKEN")) {
+    				pName = msg.substring(12, msg.length());
+    				if (getPlayerByName(pName) != null) {
+    					sendMsg("true");
+    				} else {
+    					sendMsg("false");
+    				}
     			}
     		}
+    	}
+    	synchronized (syncObj) {
+    		try {
+    			syncObj.wait();
+    		} catch (InterruptedException e) {
+    			System.err.println("Thread " + Thread.currentThread().getId() + ": " + e);
+    		}
+    	}
+    	resetBools();
     	}
     	System.out.println("Thread " + Thread.currentThread().getId() + " terminating");
     }
@@ -92,6 +111,19 @@ public class Player extends Thread {
     	return msg;
     }
     
+    public Player getPlayerByName(String name) {
+    	if (players.size() == 0) {
+    		return null;
+    	}
+    	for (int i = 0; i < players.size(); i++) {
+    		if (players.get(i).getPName() == null) {
+			}
+    		else if (players.get(i).getPName().equals(name)) {
+    			return players.get(i);
+    		}
+    	}
+    	return null;
+    }
     
     public void setPName(String name) {
     	this.name = name;
@@ -125,6 +157,10 @@ public class Player extends Thread {
     	return conn;
     }
     
+    public Boolean getDisconnected() {
+    	return isDisconnected;
+    }
+    
     public void sendMsg(String msg) {
 		 try {
 	    	out.println(msg);
@@ -134,16 +170,23 @@ public class Player extends Thread {
 		 }
 	}
     
+    public void resetBools() {
+    	isAvail = true;
+    	inGame = false;
+    }
+    
     public String readMsg() {
 		try {
 			return in.readLine().replaceAll("[^0-9 A-Za-z.]", "");
 		} catch (NullPointerException e) {
-			System.out.println("Player " +  ID + " has disconnected");
+			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
 			Thread.currentThread().interrupt();
+			isDisconnected = true;
 			return "Disconnected";
     	} catch (SocketException e) {
-    		System.out.println("Player " +  ID + " has disconnected");
+    		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
 			Thread.currentThread().interrupt();
+			isDisconnected = true;
 			return "Disconnected";
     	} catch (IOException e) {
 			System.err.println(e);

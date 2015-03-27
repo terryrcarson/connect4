@@ -17,14 +17,15 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 	Painting painter;
 	Timer timer;
 	//Intro intro = new Intro();
-	private String p1Name, p2Name;
+	private String p1Name, p2Name, thisName;
 	
 	public GUI() {}
 	
-	public GUI(Client c, String p1Name, String p2Name) {
+	public GUI(Client c, String p1Name, String p2Name, String thisName) {
 		this.p1Name = p1Name;
 		this.p2Name = p2Name;
-		painter = new Painting(c, p1Name, p2Name);
+		this.thisName = thisName;
+		painter = new Painting(c, p1Name, p2Name, thisName, frame);
     	frame.setTitle("Connect Four");
     	frame.setSize(600, 450);
     	frame.setResizable(false);
@@ -41,6 +42,8 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		if (!painter.getGameOver()) {
 			frame.repaint();
+		} else {
+			timer.stop();
 		}
 		//System.out.println("terminated");
 	}
@@ -90,6 +93,7 @@ class Intro extends JPanel implements ActionListener {
 	JTextField nameinput;
 	JButton startButton;
 	JFrame frame = new JFrame();
+	Client client = new Client();
 	
 	public Intro() {
 		frame.setTitle("Connect Four");
@@ -122,29 +126,34 @@ class Intro extends JPanel implements ActionListener {
 		frame.setVisible(true);
 	}
 	
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		String name = nameinput.getText();
 		Pattern pattern = Pattern.compile("\\s");
 		Matcher matcher = pattern.matcher(name);
 		boolean hasSpaces = matcher.find();
 		if (name.length() > 15) {
-			System.out.println("This name is too long");
+			new ErrorDialog("This name is too long");
 		} else if (name.length() == 0) {
-			System.out.println("This name is too short");
+			new ErrorDialog("This name is too short");
 		} else if (hasSpaces) {
-			System.out.println("Names cannot have spaces");
+			new ErrorDialog("Names cannot have spaces");
 		} else {
-			frame.getContentPane().removeAll();
-			new MatchMaking(name);
-			frame.repaint();
-			frame.setVisible(false);
+			if (client.isNameTaken(name)) {
+				new ErrorDialog("This name is already taken");
+			} else {
+				frame.getContentPane().removeAll();
+				client.sendMsg("NAME " + name);
+				new MatchMaking(name, client);
+				frame.repaint();
+				frame.setVisible(false);
+			}
+			
 		}
 	}
 	
 }
 
-class MatchMaking extends JPanel implements ActionListener {
+/*class MatchMaking extends JPanel implements ActionListener {
 	
 	private String name;
 	JFrame frame = new JFrame();
@@ -242,7 +251,7 @@ class MatchMaking extends JPanel implements ActionListener {
     	frame.add(this);
     	frame.setVisible(true);
     }
-}
+}*/
 
 class ChallengeDialog implements ActionListener {
 	
@@ -286,7 +295,7 @@ class ChallengeDialog implements ActionListener {
 			client.sendMsg("OK");
 			frame.setVisible(false);
 			prevFrame.setVisible(false);
-			new GUI(client, name, thisPlayerName);
+			new GUI(client, name, thisPlayerName, thisPlayerName);
 		} else if (e.getSource() == no) {
 			client.sendMsg("NO");
 			frame.setVisible(false);
