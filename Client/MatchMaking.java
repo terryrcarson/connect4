@@ -18,13 +18,13 @@ import java.awt.event.WindowEvent;
 public class MatchMaking extends JPanel implements ActionListener {
 	
 	private String name;
-	JFrame frame = new JFrame();
-	Client client;
-	JList<String> pList;
-	JButton challengeButton;
-	Timer timer;
-	String challengerName, targetPlayer;
-	Boolean challenged = false, isChallenger = false;
+	private JFrame frame = new JFrame();
+	private Client client;
+	private JList<String> pList;
+	private JButton challengeButton;
+	private Timer timer;
+	private String challengerName, targetPlayer;
+	private Boolean challenged = false, isChallenger = false;
 	
 	public MatchMaking(){}
 	
@@ -33,7 +33,7 @@ public class MatchMaking extends JPanel implements ActionListener {
 		this.name = name;
 		//client.sendMsg("NAME " + name);
 		initGUI();
-		timer = new Timer(5000, this);
+		timer = new Timer(1250, this);
 		timer.start();
 	}
 	
@@ -44,31 +44,57 @@ public class MatchMaking extends JPanel implements ActionListener {
 				//do nothing
 			} else {
 				isChallenger = true;
-				switch(client.challengePlayer(name, (targetPlayer = pList.getSelectedValue()))) {
+				try {
+					switch(client.challengePlayer(name, (targetPlayer = pList.getSelectedValue()))) {
 					case "UNAVAIL":
-						new ErrorDialog(targetPlayer + " is currently unavailable");
+						//new ErrorDialog(targetPlayer + " is currently unavailable");
+						JOptionPane.showMessageDialog(frame, targetPlayer + " is not available.");
 						isChallenger = false;
 						break;
 					case "NO":
-						new ChallengeRejected(targetPlayer);
+						JOptionPane.showMessageDialog(frame, targetPlayer + " has rejected your challenge.");
 						isChallenger = false;
 						break;
 					case "STARTGAME":
 						frame.setVisible(false);
 						new GUI(client, name, targetPlayer, name);
 						break;
+					}
+				} catch (Exception ex) {
+					client.showDCError(frame);
 				}
 			}
 		} else if (e.getSource() == timer) {
 			if(!challenged && !isChallenger) {
-				if (client.isChallenged()) {
+				try {
+					if (client.isChallenged()) {
 					//System.out.println("Challenge from " + client.getChallenger());
-					new ChallengeDialog(client.getChallenger(), client, frame, name);
+					//new ChallengeDialog(client.getChallenger(), client, frame, name);
 					challenged = true;
-					
+					int response = JOptionPane.showConfirmDialog(null, "You have been challenged by " + client.getChallenger() + "!" , "Challenge", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					switch (response) {
+						case JOptionPane.YES_OPTION:
+							client.sendMsg("OK");
+							frame.setVisible(false);
+							new GUI(client, name, targetPlayer, name);
+							break;
+						case JOptionPane.NO_OPTION:
+						case JOptionPane.CLOSED_OPTION:
+							client.sendMsg("NO");
+							challenged = false;
+							break;
+					}
+					//challenged = false;
 				}
-				if (!challenged) {
-					pList.setModel(client.getAvailPlayers());
+				} catch (Exception ex) {
+					client.showDCError(frame);
+				}
+				try {
+					if (!challenged) {
+						pList.setModel(client.getAvailPlayers());
+					}	
+				} catch (Exception ex) {
+					client.showDCError(frame);
 				}
 			}
 		}
@@ -99,7 +125,11 @@ public class MatchMaking extends JPanel implements ActionListener {
     	bottom.setPreferredSize(new Dimension(400, 50));
     	bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
     	JPanel middle = new JPanel();
-    	pList = new JList<String>(client.getAvailPlayers());
+    	try {
+    		pList = new JList<String>(client.getAvailPlayers());
+    	} catch (Exception ex) {
+    		client.showDCError(frame);
+    	}
     	pList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         pList.setVisibleRowCount(12);
         JScrollPane scrollPane = new JScrollPane(pList);

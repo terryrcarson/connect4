@@ -44,11 +44,10 @@ public class Player extends Thread {
     	start();
     }
     
-    //while not disconnected
     @Override
     public void run() {
     	String msg, pName;
-    	while (!isDisconnected) {
+    	while (!isDisconnected && !Thread.currentThread().isInterrupted()) {
     		System.out.println("Thread " + Thread.currentThread().getId() + ": player thread starting");
     	while (!inGame && !Thread.currentThread().isInterrupted()) {
     		if (!isAvail) { }

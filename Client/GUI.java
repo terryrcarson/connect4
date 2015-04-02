@@ -13,10 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GUI extends JPanel implements KeyListener, ActionListener {
-	JFrame frame = new JFrame();
-	Painting painter;
-	Timer timer;
-	//Intro intro = new Intro();
+	private JFrame frame = new JFrame();
+	private Painting painter;
+	private Timer timer;
 	private String p1Name, p2Name, thisName;
 	
 	public GUI() {}
@@ -36,6 +35,7 @@ public class GUI extends JPanel implements KeyListener, ActionListener {
     	timer = new Timer(250, this);
     	timer.start();
     	frame.setVisible(true);
+    	painter.resetGameOver();
     }
 
 	@Override
@@ -93,37 +93,42 @@ class Intro extends JPanel implements ActionListener {
 	JTextField nameinput;
 	JButton startButton;
 	JFrame frame = new JFrame();
-	Client client = new Client();
+	Client client;
 	
 	public Intro() {
-		frame.setTitle("Connect Four");
-    	frame.setSize(600, 450);
-    	frame.setResizable(false);
-    	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	frame.setLocationRelativeTo(null);
-		setLayout(new BorderLayout());
-		JPanel top = new JPanel();
-		top.setPreferredSize(new Dimension(400, 250));
-		top.setLayout(new BoxLayout(top, BoxLayout.PAGE_AXIS));
-		nameinput = new JTextField("Enter your name", 20);
-		//nameinput.setPreferredSize(new Dimension(40, 100));
-		JLabel instructions = new JLabel("<html><center><font face='verdana' size=30>Instructions</font><p><ul><li><font size=3>Move using the left and right arrow keys</li><li><font size=3>Use the down key to place your piece</center></html>");
-		//instructions.setPreferredSize(new Dimension(600, 350));
-		startButton = new JButton("Start");
-		startButton.addActionListener(this);
-		top.add(instructions);
-		top.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-		JPanel bottom = new JPanel();
-		//bottom.add(Box.createRigidArea(new Dimension(50,50)));
-		bottom.setPreferredSize(new Dimension(400, 60));
-		bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
-		bottom.add(nameinput);
-		bottom.add(startButton);
-		bottom.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-		add(top, BorderLayout.CENTER);
-		add(bottom, BorderLayout.SOUTH);
-		frame.add(this);
-		frame.setVisible(true);
+		try {
+			client = new Client();
+			frame.setTitle("Connect Four");
+	    	frame.setSize(600, 450);
+	    	frame.setResizable(false);
+	    	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    	frame.setLocationRelativeTo(null);
+			setLayout(new BorderLayout());
+			JPanel top = new JPanel();
+			top.setPreferredSize(new Dimension(400, 250));
+			top.setLayout(new BoxLayout(top, BoxLayout.PAGE_AXIS));
+			nameinput = new JTextField("Enter your name", 20);
+			//nameinput.setPreferredSize(new Dimension(40, 100));
+			JLabel instructions = new JLabel("<html><center><font face='verdana' size=30>Instructions</font><p><ul><li><font size=3>Move using the left and right arrow keys</li><li><font size=3>Use the down key to place your piece</center></html>");
+			//instructions.setPreferredSize(new Dimension(600, 350));
+			startButton = new JButton("Start");
+			startButton.addActionListener(this);
+			top.add(instructions);
+			top.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+			JPanel bottom = new JPanel();
+			//bottom.add(Box.createRigidArea(new Dimension(50,50)));
+			bottom.setPreferredSize(new Dimension(400, 60));
+			bottom.setLayout(new BoxLayout(bottom, BoxLayout.LINE_AXIS));
+			bottom.add(nameinput);
+			bottom.add(startButton);
+			bottom.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+			add(top, BorderLayout.CENTER);
+			add(bottom, BorderLayout.SOUTH);
+			frame.add(this);
+			frame.setVisible(true);
+		} catch (Exception ex) {
+			
+		}
 	}
 	
 	public void actionPerformed(ActionEvent e) {
@@ -138,16 +143,20 @@ class Intro extends JPanel implements ActionListener {
 		} else if (hasSpaces) {
 			new ErrorDialog("Names cannot have spaces");
 		} else {
-			if (client.isNameTaken(name)) {
-				new ErrorDialog("This name is already taken");
-			} else {
-				frame.getContentPane().removeAll();
-				client.sendMsg("NAME " + name);
-				new MatchMaking(name, client);
-				frame.repaint();
-				frame.setVisible(false);
+			try {
+				if (client.isNameTaken(name)) {
+					JOptionPane.showMessageDialog(frame, "This name is already taken.");
+					//new ErrorDialog("This name is already taken");
+				} else {
+					frame.getContentPane().removeAll();
+					client.sendMsg("NAME " + name);
+					new MatchMaking(name, client);
+					frame.repaint();
+					frame.setVisible(false);
+				}
+			} catch (Exception ex) {
+				client.showDCError(frame);
 			}
-			
 		}
 	}
 	

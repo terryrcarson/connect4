@@ -5,13 +5,15 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 public class Painting extends JComponent {
-	Client client;
-	//Game game = new Game();
+	
+	public Client client;
 	private final int EMPTY = 0, RED = 1, BLACK = 2;
+	private int response;
 	private Boolean isGameOver = false;
 	private String p1Name, p2Name, thisName;
-	Board board = new Board();
-	JFrame prevFrame;
+	private Board board = new Board();
+	private JFrame prevFrame;
+	private Object[] options = {"Play again", "Quit"};
 	
 	public Painting() {}
 	
@@ -21,18 +23,26 @@ public class Painting extends JComponent {
 		this.thisName = thisName;
 		this.p1Name = p1Name;
 		this.p2Name = p2Name;
-		//this.thisName = thisName;
+		isGameOver = false;
 	}
 	
 	public Boolean getGameOver() {
 		return isGameOver;
 	}
 	
+	public void resetGameOver() {
+		isGameOver = false;
+	}
+	
 	@Override
 	protected void paintComponent(Graphics g) {
 		//Cell board[][] = new Cell[7][6];
 		super.paintComponent(g);
-		board.board = client.getBoard();
+		try {
+			board.board = client.getBoard();
+		} catch (Exception ex) {
+			client.showDCError(prevFrame);
+		}
 		/*for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 6; y++) {
 				System.out.print(board[x][y].getType());
@@ -45,15 +55,23 @@ public class Painting extends JComponent {
 		g.setColor(Color.BLUE);
 		g.fillRect(10, 300, 30, 150);
 		g.fillRect(560, 300, 30, 150);
-		switch (client.getCurrPlayer()) {
-			case RED:
-				g.setColor(Color.RED);
-				break;
-			case BLACK:
-				g.setColor(Color.BLACK);
-				break;
+		try {
+			switch (client.getCurrPlayer()) {
+				case RED:
+					g.setColor(Color.RED);
+					break;
+				case BLACK:
+					g.setColor(Color.BLACK);
+					break;
+			}
+		} catch (Exception ex) {
+			client.showDCError(prevFrame);
 		}
-		g.fillOval((client.getPieceLoc().getX() * 75) + 55, (client.getPieceLoc().getY() * 52) + 15, 35, 35);
+		try {
+			g.fillOval((client.getPieceLoc().getX() * 75) + 55, (client.getPieceLoc().getY() * 52) + 15, 35, 35);
+		} catch (Exception ex) {
+			client.showDCError(prevFrame);
+		}
 		for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 6; y++) {
 				switch(board.board[x][y].getType()) {
@@ -80,22 +98,45 @@ public class Painting extends JComponent {
 		if (client.getGameOver() && !isGameOver) {
 			System.out.println("Gameover if entered");
 			System.out.println("winner found");
-			repaint();
-			switch (client.getWinner()) {
-				case 1:
-					new GameOverDialog(p1Name, false, thisName, client, false, prevFrame);
+			isGameOver = true;
+			try {
+				switch (client.getWinner()) {
+					case 1:
+						repaint();
+						response = JOptionPane.showOptionDialog(prevFrame, p1Name + " wins!", "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+						//new GameOverDialog(p1Name, false, thisName, client, false, prevFrame);
+						break;
+					case 2:
+						repaint();
+						response = JOptionPane.showOptionDialog(prevFrame, p2Name + " wins!", "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+						//new GameOverDialog(p2Name, false, thisName, client, false, prevFrame);
+						break;
+					case 3:
+						//new GameOverDialog(p1Name, true, thisName, client, false, prevFrame);
+						repaint();
+						response = JOptionPane.showOptionDialog(prevFrame, "Tie game!", "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+						break;
+					case 4:
+						response = JOptionPane.showOptionDialog(prevFrame, "Your opponent has disconnected!", "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+						client.sendMsg("DONE");
+						//new GameOverDialog(p1Name, false, thisName, client, true, prevFrame);
+						break;
+				}
+			} catch (Exception ex) {
+				client.showDCError(prevFrame);
+			}
+			switch (response) {
+				case JOptionPane.YES_OPTION:
+					prevFrame.setVisible(false);
+					client.sendMsg("REPEAT");
+					new MatchMaking(thisName, client);
+					client.resetGameOver();
 					break;
-				case 2:
-					new GameOverDialog(p2Name, false, thisName, client, false, prevFrame);
-					break;
-				case 3:
-					new GameOverDialog(p1Name, true, thisName, client, false, prevFrame);
-					break;
-				case 4:
-					new GameOverDialog(p1Name, false, thisName, client, true, prevFrame);
+				case JOptionPane.NO_OPTION:
+				case JOptionPane.CLOSED_OPTION:
+					System.exit(0);
 					break;
 			}
-			isGameOver = true;
 		}
 	}
 }
@@ -106,10 +147,10 @@ class GameOverDialog implements ActionListener {
 	JFrame frame, prevFrame;
 	JLabel msg;
 	String thisName;
-	Client client;
+	final Client client;
 	Boolean Dced;
 	
-	public GameOverDialog(String name, Boolean tieGame, String thisName, Client client, Boolean Dced, JFrame prevFrame) {
+	public GameOverDialog(String name, Boolean tieGame, String thisName, final Client client, Boolean Dced, JFrame prevFrame) {
 		this.thisName = thisName;
 		this.client = client;
 		this.Dced = Dced;
@@ -141,6 +182,14 @@ class GameOverDialog implements ActionListener {
     	container.add(bottom, BorderLayout.SOUTH);
     	frame.add(container);
     	frame.setVisible(true);
+    	Runtime.getRuntime().addShutdownHook(new Thread()
+		{
+    		@Override
+    		public void run()
+    		{
+        		client.sendMsg("NOREPEAT");
+    		}
+		});
 	}
 	
 	@Override
@@ -148,7 +197,10 @@ class GameOverDialog implements ActionListener {
 		if (e.getSource() == ok) {
 			prevFrame.setVisible(false);
 			frame.setVisible(false);
+			client.sendMsg("REPEAT");
 			new MatchMaking(thisName, client);
+			client.resetGameOver();
+			frame.dispose();
 		} else if (e.getSource() == quit) {
 			System.exit(0);
 		}

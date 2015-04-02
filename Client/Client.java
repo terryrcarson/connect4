@@ -22,7 +22,7 @@ public class Client {
 	private Cell currPieceLoc = new Cell();
 	private Boolean isGameOver = false, serverDisconnected = false;
 	
-	public Client() {
+	public Client() throws Exception {
 		try {
 			System.out.println("Connecting...");
 			conn = new Socket("localhost", 6664);
@@ -32,10 +32,15 @@ public class Client {
 		} catch (Exception e) {
 			new ErrorDialog("Unable to connect to server");
 			System.err.println("Constructor error:" + e);
+			throw new Exception("Unable to connect to server");
 		}
 	}
 	
-	public String readMsg() {
+	public void resetGameOver() {
+		isGameOver = false;
+	}
+	
+	public String readMsg() throws ServerDisconnectedException {
 		try {
 			String msg = in.readLine();
 			if (msg.startsWith("GAMEOVER")) {
@@ -47,11 +52,13 @@ public class Client {
 		} catch (NullPointerException e) {
 			isGameOver = true;
 			serverDisconnected = true;
-			new ErrorDialog("You have disconnected from the server");
+			throw new RuntimeException("Disconnected from server");
+			//JOptionPane.showMessageDialog(frame, "You have disconnected from the server.");
 		} catch (SocketException e) {
 			isGameOver = true;
 			serverDisconnected = true;
-			new ErrorDialog("You have disconnected from the server");
+			throw new RuntimeException("Disconnected from server");
+			//JOptionPane.showMessageDialog(frame, "You have disconnected from the server.");
 		} catch (IOException e) {
 			System.err.println(e);
 		}
@@ -67,7 +74,7 @@ public class Client {
 		 }
 	}
 	
-	public int getCurrPlayer() {
+	public int getCurrPlayer() throws Exception {
 		try {
 			sendMsg("REQUESTCURRPLAYER");
 			String msg = readMsg();
@@ -76,6 +83,8 @@ public class Client {
 			}
 			//System.out.println(msg);
 			return Character.getNumericValue(msg.charAt(0));
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {
 			isGameOver = true;
 		} catch (Exception e) {
@@ -84,7 +93,7 @@ public class Client {
 		return 0;
 	}
 	
-	public Cell getPieceLoc() {
+	public Cell getPieceLoc() throws Exception {
 		try {
 			sendMsg("REQUESTPIECELOC");
 			String msg = readMsg();
@@ -98,6 +107,8 @@ public class Client {
 			int y = Character.getNumericValue(msg.charAt(1));
 			System.out.println("x: " + x + ", y: " + y);
 			return new Cell(x, y);
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {
 			isGameOver = true;
 		} catch (Exception e) {
@@ -106,7 +117,7 @@ public class Client {
 		return null;
 	}
 	
-	public Cell[][] getBoard() {
+	public Cell[][] getBoard() throws Exception {
 		Cell[][] board = new Cell[7][6];
 		int i = 0;
 		try {
@@ -124,6 +135,8 @@ public class Client {
 				}
 			}
 			return board;
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {
 			isGameOver = true;
 		} catch (Exception e) {
@@ -132,7 +145,7 @@ public class Client {
 		return null;
 	}
 	
-	public int getWinner() {
+	public int getWinner() throws Exception {
 		try {
 			sendMsg("REQUESTWINNER");
 			String msg = readMsg();
@@ -141,6 +154,8 @@ public class Client {
 			}
 			//System.out.println(msg);
 			return Character.getNumericValue(msg.charAt(0));
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {
 			isGameOver = true;
 		} catch (Exception e) {
@@ -149,7 +164,7 @@ public class Client {
 		return 0;
 	}
 	
-	public DefaultListModel<String> getAvailPlayers() {
+	public DefaultListModel<String> getAvailPlayers() throws Exception {
 		DefaultListModel<String> players = new DefaultListModel<String>();
 		try {
 			sendMsg("REQUESTPLAYERS");
@@ -159,23 +174,27 @@ public class Client {
 				players.addElement(tokenizer.nextToken());
 			}
 			return players;
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (Exception e) {
 			System.err.println(e);
 		}
 		return null;
 	}
 	
-	public String challengePlayer(String thisPlayer, String targetPlayer) {
+	public String challengePlayer(String thisPlayer, String targetPlayer) throws Exception {
 		try {
 			sendMsg("CHALLENGE " + thisPlayer + " " + targetPlayer);
 			return readMsg();
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (Exception e) {
 			System.err.println(e);
 		}
 		return null;
 	}
 	
-	public boolean isChallenged() {
+	public boolean isChallenged() throws Exception {
 		try {
 			sendMsg("AMICHALLENGED");
 			switch (readMsg()) {
@@ -186,16 +205,20 @@ public class Client {
 				case "NO":
 					return false;
 			}
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (Exception e) {
 			System.err.println(e);
 		}
 		return false;
 	}
 	
-	public String getChallenger() {
+	public String getChallenger() throws Exception {
 		try {
 			sendMsg("WHOCHALLENGED");
 			return readMsg();
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (Exception e) {
 			System.err.println(e);
 		}
@@ -206,14 +229,30 @@ public class Client {
 		return isGameOver;
 	}
 	
-	public Boolean isNameTaken(String name) {
+	public Boolean isNameTaken(String name) throws Exception {
 		try {
 			sendMsg("ISNAMETAKEN " + name);
 			return Boolean.parseBoolean(readMsg());
+		} catch (ServerDisconnectedException e) {
+			throw new Exception("Server disconnected");
 		} catch (Exception e) {
 			System.err.println(e);
 		}
 		return false;
+	}
+	
+	class ServerDisconnectedException extends Exception {
+		public ServerDisconnectedException() {}
+	}
+	
+	public void showDCError(JFrame frame) {
+		Object[] options = {"Ok"};
+		int n = JOptionPane.showOptionDialog(frame, "You have disconnected from the server.", "Disconnected", JOptionPane.PLAIN_MESSAGE, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+		switch (n) {
+			case JOptionPane.OK_OPTION:
+			case JOptionPane.CLOSED_OPTION:
+				System.exit(1);
+		}
 	}
 	
 	class ErrorDialog implements ActionListener {
@@ -245,7 +284,7 @@ public class Client {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == ok) {
-			frame.setVisible(false);
+			System.exit(1);
 		}
 	}
 	

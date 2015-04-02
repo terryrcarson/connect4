@@ -206,9 +206,12 @@ public class Game extends Thread {
 					}
 				}
 			}
-			synchronized (p.syncObj) {
-				p.syncObj.notify();
-				
+			if (p.readMsg().equals("REPEAT")) {
+				synchronized (p.syncObj) {
+					p.syncObj.notify();
+				}
+			} else {
+				p.interrupt();
 			}
 			System.out.println("Thread " + Thread.currentThread().getId() + ": DONE received, terminating");
 			Thread.currentThread().interrupt();
