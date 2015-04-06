@@ -1,12 +1,21 @@
 package Client;
-import java.awt.*;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public class Painting extends JComponent {
 	
+	private static final long serialVersionUID = 1L;
 	public Client client;
 	private final int EMPTY = 0, RED = 1, BLACK = 2;
 	private int response;

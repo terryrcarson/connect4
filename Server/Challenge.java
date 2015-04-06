@@ -40,6 +40,7 @@ public class Challenge extends Thread {
 				//p2.interrupt();
 	    	} else if (msg.equals("NO")) {
 	    		p1.sendMsg("NO");
+	    		p2.sendMsg("BLAH");
 				p1.setAvail(true);
 				p2.setAvail(true);
 	    	} else if (msg.equals("Disconnected")) {

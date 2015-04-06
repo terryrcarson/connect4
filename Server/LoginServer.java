@@ -1,20 +1,13 @@
 package Server;
-/**
- * @(#)LoginServer.java
- *
- *
- * @author 
- * @version 1.00 2015/3/10
- */
-import java.net.*;
-import java.util.*;
+
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class LoginServer {
 	
-	private BlockingQueue queue = new ArrayBlockingQueue<String>(50);
-	private Vector<Player> players = new Vector<Player>();
+	private BlockingQueue<String> queue = new ArrayBlockingQueue<String>(50);
 	private ServerSocket servSock;
 	private MatchmakingServer matchmaker;
 	private int ID = 0;
@@ -46,22 +39,12 @@ public class LoginServer {
     	}	
     }
     
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) {
     	
     	LoginServer serv = new LoginServer();
-    	
-    	/*while (serv.players.size() < 2) {
-    		serv.listenConnect();
-    	}
-    	new Game(serv.players.get(0), serv.players.get(1)).start();*/
-    	
     	serv.initMatchmaker();
-    	
     	while (true) {
     		serv.listenConnect();
     	}
-    	
-    	
     }
-    
 }

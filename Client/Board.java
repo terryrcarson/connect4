@@ -1,8 +1,7 @@
 package Client;
 
 public class Board {
-	//ArrayList<Cell> coords = new ArrayList<Cell>();
-	private final int EMPTY = 0, RED = 1, BLACK = 2;
+
 	Cell[][] board = new Cell[7][6];
 	
 	public Board() {

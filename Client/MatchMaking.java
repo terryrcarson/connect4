@@ -1,23 +1,26 @@
-/**
- * @(#)MatchMaking.java
- *
- *
- * @author 
- * @version 1.00 2015/3/25
- */
 package Client;
-import java.awt.*;
-import javax.swing.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.Timer;
 
 public class MatchMaking extends JPanel implements ActionListener {
 	
+	private static final long serialVersionUID = 1L;
 	private String name;
 	private JFrame frame = new JFrame();
 	private Client client;
@@ -108,8 +111,8 @@ public class MatchMaking extends JPanel implements ActionListener {
 							break;
 						case JOptionPane.NO_OPTION:
 						case JOptionPane.CLOSED_OPTION:
-							client.readMsg(); //Eat the NO from server
 							client.sendMsg("NO");
+							client.readMsg(); //Eat the NO from server
 							challenged = false;
 							break;
 					}

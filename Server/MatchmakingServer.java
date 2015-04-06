@@ -1,27 +1,20 @@
-/**
- * @(#)MatchmakingServer.java
- *
- *
- * @author 
- * @version 1.00 2015/3/17
- */
-
-/*needs to create challenges between players
- *objectives:
- *1. listen for challenges
- *2. push available players to player threads
- */
 package Server;
+
 import java.util.Vector;
 import java.util.StringTokenizer;
 import java.util.concurrent.BlockingQueue;
 
+/*objectives:
+ *1. listen for challenges
+ *2. push available players to player threads
+ */
+
 public class MatchmakingServer extends Thread {
 	
 	private Vector<Player> players = new Vector<Player>();
-	private final BlockingQueue queue;
+	private final BlockingQueue<String> queue;
 	
-    public MatchmakingServer(BlockingQueue q) {
+    public MatchmakingServer(BlockingQueue<String> q) {
     	queue = q;
     	System.out.println("Thread " + Thread.currentThread().getId() + ": Matchmaking server started");
     }

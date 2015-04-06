@@ -1,15 +1,15 @@
 package Server;
-/**
- * @(#)Player.java
- *
- *
- * @author 
- * @version 1.00 2015/3/10
- */
-import java.net.*;
-import java.io.*;
+
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
+
 /*
  * objectives:
  * 1. handle communication between each player and the server
@@ -24,11 +24,11 @@ public class Player extends Thread {
 	private PrintWriter out;
 	private BufferedReader in;
 	private Vector<Player> players = new Vector<Player>();
-	private final BlockingQueue queue;
+	private final BlockingQueue<String> queue;
 	private final int ID;
 	public final Object syncObj = new Object();
     
-    public Player(Socket sock, BlockingQueue q, int ID) {
+    public Player(Socket sock, BlockingQueue<String> q, int ID) {
     	queue = q;
     	conn = sock;
     	isAvail = true;

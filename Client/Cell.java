@@ -1,19 +1,9 @@
-/**
- * @(#)Cell.java
- *
- *
- * @author 
- * @version 1.00 2015/3/6
- */
 package Client;
 
-import java.io.Serializable;
-
-public class Cell implements Serializable {
+public class Cell {
 
 	//Types: 0 = Empty, 1 = Red, 2 = Black
 	private int x, y, type;
-	private transient final int RED = 1, BLACK = 2;
 	
 	public Cell() {}
 	

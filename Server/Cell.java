@@ -1,18 +1,9 @@
 package Server;
-/**
- * @(#)Cell.java
- *
- *
- * @author 
- * @version 1.00 2015/3/6
- */
 
 public class Cell {
 
 	//Types: 0 = Empty, 1 = Red, 2 = Black
 	private int x, y, type;
-	private final int RED = 1, BLACK = 2;
-	private static final long serialVersionUID = 5950169519310163575L;
 	
 	public Cell() {}
 	

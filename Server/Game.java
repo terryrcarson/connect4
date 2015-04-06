@@ -1,17 +1,9 @@
 package Server;
-import java.net.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.io.*;
 
 public class Game extends Thread {
 	
-	Board board = new Board();
-	public String msg = "";
+	private Board board = new Board();
+	private String msg = "";
 	private int currPlayer;
 	private final int RED = 1, BLACK = 2;
 	private Cell currPieceLoc;
@@ -46,25 +38,19 @@ public class Game extends Thread {
 		if (player[BLACK].getDisconnected()) {
 			playerDced = true;
 			player[RED].sendMsg("GAMEOVER 4");
-			FinalMessageHandler handler2 = new FinalMessageHandler(player[RED]);
+			new FinalMessageHandler(player[RED]);
 		} else if (player[RED].getDisconnected()) {
 			playerDced = true;
 			player[BLACK].sendMsg("GAMEOVER 4");
-			FinalMessageHandler handler1 = new FinalMessageHandler(player[BLACK]);
+			new FinalMessageHandler(player[BLACK]);
 		} else {
 			for (int i = 1; i < 3; i++) {
 				player[i].sendMsg("GAMEOVER " + checkWinner());
 			}
-			FinalMessageHandler handler1 = new FinalMessageHandler(player[BLACK]);
-			FinalMessageHandler handler2 = new FinalMessageHandler(player[RED]);
+			new FinalMessageHandler(player[BLACK]);
+			new FinalMessageHandler(player[RED]);
 		}
-		/*while((!handler1.isInterrupted() && !handler2.isInterrupted()) || (handler1.isInterrupted() && !handler2.isInterrupted()) || (!handler1.isInterrupted() && handler2.isInterrupted())) {
-			//do nothing
-		}*/
 		System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread terminating");
-		//player[BLACK].resetBools();
-		//player[RED].resetBools();
-		
 	}
 	
 	public void setCurrPlayer(int player) {
