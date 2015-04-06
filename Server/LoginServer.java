@@ -5,16 +5,20 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 
+//Listens for connections and passes them off to MatchMakingServer
+
 public class LoginServer {
 	
-	private BlockingQueue<String> queue = new ArrayBlockingQueue<String>(50);
+	private final int PORT_NUMBER = 6664; //Edit this if needed
+	private final int MAX_CHALLENGES = 50; //Edit this if needed
+	private BlockingQueue<String> queue = new ArrayBlockingQueue<String>(MAX_CHALLENGES);
 	private ServerSocket servSock;
 	private MatchmakingServer matchmaker;
 	private int ID = 0;
 	
     public LoginServer() {
     	try {
-    		servSock = new ServerSocket(6664);
+    		servSock = new ServerSocket(PORT_NUMBER);
     		System.out.println("Login server started");
     	} catch (Exception e) {
     		System.err.println("Error creating socket: " + e);
@@ -31,7 +35,6 @@ public class LoginServer {
     	try {
     		Socket conn = servSock.accept();
     		System.out.println("Connection from " + conn.getInetAddress());
-    		//conn.setSoTimeout(5000);
     		matchmaker.addPlayer(new Player(conn, queue, ID));
     		ID++;
     	} catch (Exception e) {

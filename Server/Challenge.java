@@ -1,14 +1,9 @@
-/**
- * @(#)Challenge.java
- *
- *
- * @author 
- * @version 1.00 2015/3/17
- */
 package Server;
 
 import java.net.SocketTimeoutException;
+
 //Creates a challenge, if accepted begins a game thread, if denied then terminates
+
 public class Challenge extends Thread {
 	
 	private Player p1;

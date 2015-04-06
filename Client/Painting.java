@@ -15,8 +15,8 @@ import javax.swing.JPanel;
 
 public class Painting extends JComponent {
 	
-	private static final long serialVersionUID = 1L;
 	public Client client;
+	private static final long serialVersionUID = 1L;
 	private final int EMPTY = 0, RED = 1, BLACK = 2;
 	private int response;
 	private Boolean isGameOver = false;

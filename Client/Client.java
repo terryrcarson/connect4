@@ -20,6 +20,8 @@ import javax.swing.JPanel;
 
 public class Client {
 	
+	private final String SERVER_ADDRESS = "localhost"; //Edit this if needed
+	private final int PORT_NUMBER = 6664; //Edit this if needed
 	private Socket conn;
 	private PrintWriter out;
 	private BufferedReader in;
@@ -28,7 +30,7 @@ public class Client {
 	public Client() throws Exception {
 		try {
 			System.out.println("Connecting...");
-			conn = new Socket("localhost", 6664);
+			conn = new Socket(SERVER_ADDRESS, PORT_NUMBER);
 			System.out.println("Connected!");
 			out = new PrintWriter(conn.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
