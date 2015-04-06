@@ -11,7 +11,7 @@
  *1. listen for challenges
  *2. push available players to player threads
  */
-
+package Server;
 import java.util.Vector;
 import java.util.StringTokenizer;
 import java.util.concurrent.BlockingQueue;

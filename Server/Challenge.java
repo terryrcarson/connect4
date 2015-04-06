@@ -5,8 +5,10 @@
  * @author 
  * @version 1.00 2015/3/17
  */
+package Server;
 
-//Creates a challange, if accepted begins a game thread, if denied then terminates
+import java.net.SocketTimeoutException;
+//Creates a challenge, if accepted begins a game thread, if denied then terminates
 public class Challenge extends Thread {
 	
 	private Player p1;
@@ -22,25 +24,33 @@ public class Challenge extends Thread {
     
     @Override
     public void run() {
-    	System.out.println(p2.readMsg());
-    	p2.sendMsg(p1.getPName());
-    	String msg = p2.readMsg();
-    	if (msg.equals("OK")) {
-    		new Game(p1, p2).start();
-			p1.sendMsg("STARTGAME");
-			p1.setInGame(true);
-			p2.setInGame(true);
-			//p1.interrupt();
-			//p2.interrupt();
-    	} else if (msg.equals("NO")) {
-    		p1.sendMsg("NO");
-			p1.setAvail(true);
-			p2.setAvail(true);
-    	} else if (msg.equals("Disconnected")) {
-    		p1.sendMsg("NO");
-			p1.setAvail(true);
-    	}
+    	try {
+	    	System.out.println(p2.readMsgTimeout());
+	    	p2.sendMsg(p1.getPName());
+	    	String msg = p2.readMsgTimeout();
+	    	if (msg.equals("OK")) {
+	    		if (p2.readMsg().equals("READY")) {
+	    			p2.sendMsg("OK");
+	    		}
+	    		new Game(p1, p2).start();
+				p1.sendMsg("STARTGAME");
+				p1.setInGame(true);
+				p2.setInGame(true);
+				//p1.interrupt();
+				//p2.interrupt();
+	    	} else if (msg.equals("NO")) {
+	    		p1.sendMsg("NO");
+				p1.setAvail(true);
+				p2.setAvail(true);
+	    	} else if (msg.equals("Disconnected")) {
+	    		p1.sendMsg("NO");
+				p1.setAvail(true);
+	    	}
+    	} catch (SocketTimeoutException e) {
+    		p1.sendMsg("NORESPONSE");
+    		p2.sendMsg("NORESPONSE");
+    		p1.setAvail(true);
+    		p2.setAvail(true);
+    	} 
     }
-    
-    
 }

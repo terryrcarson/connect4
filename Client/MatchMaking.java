@@ -5,6 +5,7 @@
  * @author 
  * @version 1.00 2015/3/25
  */
+package Client;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -25,15 +26,16 @@ public class MatchMaking extends JPanel implements ActionListener {
 	private Timer timer;
 	private String challengerName, targetPlayer;
 	private Boolean challenged = false, isChallenger = false;
+	private GlassPane glassPane = new GlassPane();
 	
-	public MatchMaking(){}
+	public MatchMaking() {}
 	
 	public MatchMaking(String name, Client client) {
 		this.client = client;
 		this.name = name;
 		//client.sendMsg("NAME " + name);
 		initGUI();
-		timer = new Timer(1250, this);
+		timer = new Timer(5000, this);
 		timer.start();
 	}
 	
@@ -43,26 +45,46 @@ public class MatchMaking extends JPanel implements ActionListener {
 			if (pList.getSelectedValue() == null) {
 				//do nothing
 			} else {
+				frame.setEnabled(false);
+				glassPane.setVisible(true);
 				isChallenger = true;
-				try {
-					switch(client.challengePlayer(name, (targetPlayer = pList.getSelectedValue()))) {
-					case "UNAVAIL":
-						//new ErrorDialog(targetPlayer + " is currently unavailable");
-						JOptionPane.showMessageDialog(frame, targetPlayer + " is not available.");
-						isChallenger = false;
-						break;
-					case "NO":
-						JOptionPane.showMessageDialog(frame, targetPlayer + " has rejected your challenge.");
-						isChallenger = false;
-						break;
-					case "STARTGAME":
-						frame.setVisible(false);
-						new GUI(client, name, targetPlayer, name);
-						break;
+				targetPlayer = pList.getSelectedValue();
+				//This is a little ugly but it gets the job done...
+				new Thread() {
+					public void run() {
+						try {
+							switch(client.challengePlayer(name, targetPlayer)) {
+								case "NORESPONSE":
+									glassPane.setVisible(false);
+									frame.setEnabled(true);
+									JOptionPane.showMessageDialog(frame, targetPlayer + " did not respond.");
+									isChallenger = false;
+									break;
+								case "UNAVAIL":
+									glassPane.setVisible(false);
+									frame.setEnabled(true);
+									JOptionPane.showMessageDialog(frame, targetPlayer + " is not available.");
+									isChallenger = false;
+									break;
+								case "NO":
+									glassPane.setVisible(false);
+									frame.setEnabled(true);
+									JOptionPane.showMessageDialog(frame, targetPlayer + " has rejected your challenge.");
+									isChallenger = false;
+									break;
+								case "STARTGAME":
+									glassPane.setVisible(false);
+									frame.setEnabled(true);
+									frame.setVisible(false);
+									new GUI(client, name, targetPlayer, name);
+									break;
+							}
+						} catch (Exception ex) {
+							frame.setEnabled(true);
+							client.showDCError(frame);
+						}
 					}
-				} catch (Exception ex) {
-					client.showDCError(frame);
-				}
+				}.start();
 			}
 		} else if (e.getSource() == timer) {
 			if(!challenged && !isChallenger) {
@@ -71,15 +93,22 @@ public class MatchMaking extends JPanel implements ActionListener {
 					//System.out.println("Challenge from " + client.getChallenger());
 					//new ChallengeDialog(client.getChallenger(), client, frame, name);
 					challenged = true;
-					int response = JOptionPane.showConfirmDialog(null, "You have been challenged by " + client.getChallenger() + "!" , "Challenge", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					int response = JOptionPane.showConfirmDialog(null, "You have been challenged by " + (challengerName = client.getChallenger()) + "!" , "Challenge", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					switch (response) {
 						case JOptionPane.YES_OPTION:
 							client.sendMsg("OK");
-							frame.setVisible(false);
-							new GUI(client, name, targetPlayer, name);
+							client.sendMsg("READY");
+							if (client.readMsg().equals("OK")) {
+								frame.setVisible(false);
+								new GUI(client, challengerName, name, name);
+							} else {
+								JOptionPane.showMessageDialog(frame, "Sorry, you took too long to accept the challenge.");
+								challenged = false;
+							}
 							break;
 						case JOptionPane.NO_OPTION:
 						case JOptionPane.CLOSED_OPTION:
+							client.readMsg(); //Eat the NO from server
 							client.sendMsg("NO");
 							challenged = false;
 							break;
@@ -110,6 +139,7 @@ public class MatchMaking extends JPanel implements ActionListener {
     	frame.setResizable(false);
     	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frame.setLocationRelativeTo(null);
+    	frame.setGlassPane(glassPane);
     	setLayout(new BorderLayout());
     	JPanel top = new JPanel();
 		top.setPreferredSize(new Dimension(400, 75));
@@ -148,4 +178,72 @@ public class MatchMaking extends JPanel implements ActionListener {
     	frame.add(this);
     	frame.setVisible(true);
     }
+	
+	class GlassPane extends JPanel implements MouseListener, ActionListener {
+
+		private static final long serialVersionUID = 1L;
+		private Timer timer = new Timer(1000, this);
+		private int countDown = 30;
+		private JLabel label = new JLabel("Your opponent has 30 seconds to respond.");
+		
+		public GlassPane() {
+			timer.start();
+			this.add(label);
+		}
+		
+		@Override
+		public void setVisible(boolean b) {
+			if (b) {
+				label.setText("Your opponent has 30 seconds to respond.");
+				timer.start();
+				super.setVisible(true);
+			} else {
+				countDown = 30;
+				timer.stop();
+				super.setVisible(false);
+			}
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (countDown != 0) {
+				countDown--;
+				label.setText("Your opponent has " + countDown + " seconds to respond.");
+			} else {
+				this.setVisible(false);
+			}
+			
+		}
+		
+	}
 }

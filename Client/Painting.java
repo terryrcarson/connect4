@@ -1,3 +1,4 @@
+package Client;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -134,6 +135,7 @@ public class Painting extends JComponent {
 					break;
 				case JOptionPane.NO_OPTION:
 				case JOptionPane.CLOSED_OPTION:
+					client.sendMsg("NOREPEAT");
 					System.exit(0);
 					break;
 			}

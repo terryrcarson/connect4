@@ -1,4 +1,4 @@
-
+package Client;
 import java.net.*;
 import java.util.*;
 import java.io.*;
@@ -18,8 +18,6 @@ public class Client {
 	private Socket conn;
 	private PrintWriter out;
 	private BufferedReader in;
-	private Cell[][] board = new Cell[7][6];
-	private Cell currPieceLoc = new Cell();
 	private Boolean isGameOver = false, serverDisconnected = false;
 	
 	public Client() throws Exception {
@@ -242,6 +240,9 @@ public class Client {
 	}
 	
 	class ServerDisconnectedException extends Exception {
+
+		private static final long serialVersionUID = 1L;
+
 		public ServerDisconnectedException() {}
 	}
 	

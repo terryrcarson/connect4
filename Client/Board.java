@@ -1,3 +1,4 @@
+package Client;
 
 public class Board {
 	//ArrayList<Cell> coords = new ArrayList<Cell>();

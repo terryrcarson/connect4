@@ -5,6 +5,7 @@
  * @author 
  * @version 1.00 2015/3/6
  */
+package Client;
 
 import java.io.Serializable;
 

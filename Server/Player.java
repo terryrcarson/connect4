@@ -1,4 +1,4 @@
-
+package Server;
 /**
  * @(#)Player.java
  *
@@ -95,7 +95,7 @@ public class Player extends Thread {
     	}
     	System.out.println("Thread " + Thread.currentThread().getId() + " terminating");
     }
-    
+ 
     public synchronized void updateAvailPlayers(Vector<Player> players) {
     	this.players = players;
     }
@@ -191,5 +191,31 @@ public class Player extends Thread {
 			System.err.println(e);
 		}
 		return null;
-	}    
+	}   
+    
+    public String readMsgTimeout() throws SocketTimeoutException {
+		try {
+			conn.setSoTimeout(30000);
+			return in.readLine().replaceAll("[^0-9 A-Za-z.]", "");
+		} catch (SocketTimeoutException e) {
+			throw new SocketTimeoutException();
+		} catch (NullPointerException e) {
+			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
+			Thread.currentThread().interrupt();
+			isDisconnected = true;
+			return "Disconnected";
+    	} catch (SocketException e) {
+    		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
+			Thread.currentThread().interrupt();
+			isDisconnected = true;
+			return "Disconnected";
+    	} catch (IOException e) {
+			System.err.println(e);
+		} finally {
+			try {
+				conn.setSoTimeout(0);
+			} catch (SocketException e) {}
+		}
+		return null;
+	}
 }

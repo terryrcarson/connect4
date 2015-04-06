@@ -1,4 +1,4 @@
-
+package Server;
 /**
  * @(#)LoginServer.java
  *
@@ -37,9 +37,8 @@ public class LoginServer {
     public void listenConnect() {
     	try {
     		Socket conn = servSock.accept();
-    		//players.addElement(new Player(conn));
     		System.out.println("Connection from " + conn.getInetAddress());
-    		//new Player(conn, queue, ID).start();
+    		//conn.setSoTimeout(5000);
     		matchmaker.addPlayer(new Player(conn, queue, ID));
     		ID++;
     	} catch (Exception e) {
