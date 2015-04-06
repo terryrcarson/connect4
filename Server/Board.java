@@ -1,9 +1,19 @@
 package Server;
 
+/******************************************************* 
+ * Board
+ * - Abstract representation of the Connect 4 game board
+ ******************************************************/
+
 public class Board {
 	
-	Cell[][] board = new Cell[7][6];
+	Cell[][] board = new Cell[7][6]; 
 	
+	/***************************************************** 
+	 * Constructor
+	 * Precondition: N/A
+	 * Postcondition: The board is initialized to be empty
+	 ****************************************************/
 	public Board() {
 		for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 6; y++) {
@@ -13,6 +23,11 @@ public class Board {
 		}
 	}
 	
+	/********************************************************
+	 * isTied
+	 * Precondition: The board is initialized
+	 * Postcondition: Returns whether or not the game is tied
+	 *******************************************************/
 	public Boolean isTied() {
 		for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 6; y++) {
@@ -24,6 +39,11 @@ public class Board {
 		return true;
 	}
 	
+	/*************************************************************
+	 * addPiece
+	 * Precondition: The column that is being added to is not full
+	 * Postcondition: The piece is added
+	 ************************************************************/
 	public void addPiece(int col, int type) {
 		for (int y = 5; y >= 0; y--) {
 			if (board[col][y].getType() == 0) {
@@ -33,6 +53,11 @@ public class Board {
 		}
 	}
 	
+	/********************************************************************
+	 * isColFull
+	 * Precondition: The board is initialized
+	 * Postcondition: Returns whether or not the requested column is full
+	 *******************************************************************/
 	public Boolean isColFull(int col) {
 		for (int y = 5; y >= 0; y--) {
 			if (board[col][y].getType() == 0) {
@@ -42,6 +67,11 @@ public class Board {
 		return true;
 	}
 	
+	/*************************************************************************************
+	 * checkHoriz
+	 * Precondition: The board is initialized
+	 * Postcondition: Returns 0 if there is no horizontal winner, otherwise returns winner
+	 ************************************************************************************/
 	public int checkHoriz() {
 		for (int y = 0; y < 6; y++) {
 			for (int x = 0; x < 4; x++) {
@@ -53,6 +83,11 @@ public class Board {
 		return 0;
 	}
 	
+	/***********************************************************************************
+	 * checkVert
+	 * Precondition: The board is initialized
+	 * Postcondition: Returns 0 if there is no vertical winner, otherwise returns winner
+	 **********************************************************************************/
 	public int checkVert() {
 		for (int x = 0; x < 7; x++) {
 			for (int y = 0; y < 3; y++) {
@@ -64,6 +99,11 @@ public class Board {
 		return 0;
 	}
 	
+	/***********************************************************************************
+	 * checkDiag
+	 * Precondition: The board is initialized
+	 * Postcondition: Returns 0 if there is no diagonal winner, otherwise returns winner
+	 **********************************************************************************/
 	public int checkDiag() {
 		for (int x = 0; x < 4; x++) {
 			for (int y = 0; y < 3; y++) {
@@ -80,13 +120,5 @@ public class Board {
 			}
 		}
 		return 0;
-	}
-	
-	public void printCoords() {
-		for (int x = 0; x < 7; x++) {
-			for (int y = 0; y < 6; y++) {
-				System.out.println("(" + x + ", " + y + "): " + board[x][y].getType());
-			}
-		}
 	}
 }

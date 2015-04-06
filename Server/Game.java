@@ -1,5 +1,10 @@
 package Server;
 
+/**************************************
+ * Game
+ * - Handles the game logic of Connect 4
+ *************************************/
+
 public class Game extends Thread {
 	
 	private Board board = new Board();
@@ -10,11 +15,11 @@ public class Game extends Thread {
 	private Player player[];
 	private Boolean playerDced = false;
 	
-	public Game() {
-		currPlayer = RED;
-		currPieceLoc = new Cell(0, 0);
-	}
-	
+	/***************************************************************
+	 * Constructor
+	 * Precondition: Players p1 and p2 are initialized and connected
+	 * Postcondition: The game thread is ready to play 
+	 ***************************************************************/
 	public Game(Player p1, Player p2) {
 		currPlayer = RED;
 		currPieceLoc = new Cell(0, 0);
@@ -24,10 +29,16 @@ public class Game extends Thread {
 		System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread started");
 	}
 	
+	/***********************************************************************************
+	 * run
+	 * Precondition: The game has been initialized
+	 * Postcondition: When the game is over, the players' Sockets are passed back to the 
+	 * 				  Player threads
+	 **********************************************************************************/
 	@Override
 	public void run() {
 		String msg;
-		while (checkWinner() == 0 && !Thread.currentThread().isInterrupted()) {
+		while (checkWinner() == 0 && !Thread.currentThread().isInterrupted()) { //While the game is not over and nobody has disconnected
 			for (int i = 1; i < 3; i++) {
 				if ((msg = player[i].readMsg()) != null) {
 					handleMsg(msg, i);
@@ -53,19 +64,21 @@ public class Game extends Thread {
 		System.out.println("Thread " + Thread.currentThread().getId() + ": Game thread terminating");
 	}
 	
-	public void setCurrPlayer(int player) {
-		currPlayer = player;
-	}
-	
-	public int getCurrPlayer() {
+	/***********************************************
+	 * getCurrPlayer
+	 * Precondition: The game is in progress
+	 * Postcondition: The current player is returned
+	 **********************************************/
+	private int getCurrPlayer() {
 		return currPlayer;
 	}
 	
-	public Cell getPieceLoc() {
-		return currPieceLoc;
-	}
-	
-	public void movePiece(int dir) {
+	/*********************************************************************************************
+	 * movePiece
+	 * Precondition: The game is in progress and the player moving the piece is the current player
+	 * Postcondition: The piece is moved
+	 ********************************************************************************************/
+	private void movePiece(int dir) {
 		switch (dir) {
 		case 0: //Right
 			if (currPieceLoc.getX() < 6) {
@@ -80,7 +93,12 @@ public class Game extends Thread {
 		}
 	}
 	
-	public void switchPlayers() {
+	/***********************************************************
+	 * switchPlayers
+	 * Precondition: The game is in progress
+	 * Postcondition: The next player becomes the current player
+	 **********************************************************/
+	private void switchPlayers() {
 		currPieceLoc.setX(0);
 		currPieceLoc.setY(0);
 		switch (currPlayer) {
@@ -93,33 +111,39 @@ public class Game extends Thread {
 		}
 	}
 	
-	public void gameOver() {
+	/**************************************************
+	 * gameOver
+	 * Precondition: The game is over
+	 * Postcondition: The piece's location is invisible
+	 *************************************************/
+	private void gameOver() {
 		currPieceLoc.setX(-1);
 		currPieceLoc.setY(-1);
 	}
 	
-	public int checkWinner() {
+	/***********************************************
+	 * checkWinner
+	 * Precondition: The game is in progress or over
+	 * Postcondition: The game's status is returned
+	 **********************************************/
+	private int checkWinner() {
 		if (board.checkDiag() > 0) {
-			return board.checkDiag();
+			return board.checkDiag(); //The winner is player 1 or 2
 		} else if (board.checkHoriz() > 0) {
-			return board.checkHoriz();
+			return board.checkHoriz(); //The winner is player 1 or 2
 		} else if (board.checkVert() > 0) {
-			return board.checkVert();
+			return board.checkVert(); //The winner is player 1 or 2
 		} else if (board.isTied()) {
-			return 3;
+			return 3; //Game is over and tied
 		}
-		return 0;
+		return 0; //Game is still in progress
 	}
 	
-	public Boolean addPiece() {
-		if (board.isColFull(currPieceLoc.getX())) {
-			System.out.println("This column is full.");
-			return false;
-		}
-		board.addPiece(currPieceLoc.getX(), currPlayer);
-		return true;
-	}
-	
+	/*******************************************************************************
+	 * handleMsg
+	 * Precondition: The game is in progress and the server and client are connected
+	 * Postcondition: The client's request is handled
+	 ******************************************************************************/
 	public void handleMsg(String msg, int i) {
 		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + i+ ": " + msg);
 		if (msg.startsWith("MOVE") && currPlayer == i) {
@@ -148,10 +172,20 @@ public class Game extends Thread {
 		}
 	}
 	
+	/*****************************************************************************************
+	 * serializePieceLoc
+	 * Precondition: The game is in progress
+	 * Postcondition: The piece's location is converted into a string to be sent to the client
+	 ****************************************************************************************/
 	public String serializePieceLoc() {
 		return String.valueOf(currPieceLoc.getX()) + String.valueOf(currPieceLoc.getY());
 	}
 	
+	/******************************************************************************
+	 * serializeBoard
+	 * Precondition: The game is in progress
+	 * Postcondition: The board is converted into a string to be sent to the client
+	 *****************************************************************************/
 	public String serializeBoard() {
 		String msg = "";
 		for (int x = 0; x < 7; x++) {
@@ -161,16 +195,30 @@ public class Game extends Thread {
 		}
 		return msg;
 	}
-
+	
+	/*
+	 * FinalMessageHandler
+	 * - Finishes the game cleanly with each player
+	 */
 	class FinalMessageHandler extends Thread {
 		
 		private Player p;
 		
+		/*******************************************************
+		 * Constructor
+		 * Precondition: The game is over
+		 * Postcondition: The FinalMessageHandler is initialized
+		 ******************************************************/
 		public FinalMessageHandler(Player p) {
 			this.p = p;
 			start();
 		}
 		
+		/***************************************************************************************************
+		 * run
+		 * Precondition: The game is over and the FinalMessageHandler is ready
+		 * Postcondition: Each player's final requests are handled and control is returned to Player threads
+		 **************************************************************************************************/
 		@Override
 		public void run() {
 			System.out.println("Thread " + Thread.currentThread().getId() + ": final thread started");
@@ -192,15 +240,15 @@ public class Game extends Thread {
 					}
 				}
 			}
-			if (p.readMsg().equals("REPEAT")) {
+			if (p.readMsg().equals("REPEAT")) { 
 				synchronized (p.syncObj) {
-					p.syncObj.notify();
+					p.syncObj.notify(); //If they want to play again, wake up the Player thread
 				}
 			} else {
-				p.interrupt();
+				p.interrupt(); //Otherwise, kill the Player thread
 			}
 			System.out.println("Thread " + Thread.currentThread().getId() + ": DONE received, terminating");
-			Thread.currentThread().interrupt();
+			Thread.currentThread().interrupt(); //Terminate this thread
 		}
 	}
 }

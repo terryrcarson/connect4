@@ -2,13 +2,23 @@ package Server;
 
 import java.net.SocketTimeoutException;
 
-//Creates a challenge, if accepted begins a game thread, if denied then terminates
+/*************************************************
+ * Challenge
+ * - Handles the creation of a challenge
+ * - If challenge is accepted, creates Game thread
+ * - If challenge is denied, terminates
+ ************************************************/
 
 public class Challenge extends Thread {
 	
 	private Player p1;
 	private Player p2;
 	
+	/********************************************************************************
+	 * Constructor
+	 * Precondition: Players p1 and p2 are initialized
+	 * Postcondition: Players p1 and p2 are in a challenge and therefore unavailable
+	 *******************************************************************************/
     public Challenge(Player p1, Player p2) {
     	this.p1 = p1;
     	this.p2 = p2;
@@ -17,6 +27,11 @@ public class Challenge extends Thread {
     	System.out.println("Challenge started between " + p1.getPName() + " and " + p2.getPName());
     }
     
+    /*************************************************
+     * run
+     * - If challenge is accepted, creates Game thread
+     * - If challenge is denied, terminates
+     ************************************************/
     @Override
     public void run() {
     	try {
@@ -31,18 +46,16 @@ public class Challenge extends Thread {
 				p1.sendMsg("STARTGAME");
 				p1.setInGame(true);
 				p2.setInGame(true);
-				//p1.interrupt();
-				//p2.interrupt();
 	    	} else if (msg.equals("NO")) {
 	    		p1.sendMsg("NO");
-	    		p2.sendMsg("BLAH");
+	    		p2.sendMsg("BLAH"); //Just so that p2's readMsg() doesn't block
 				p1.setAvail(true);
 				p2.setAvail(true);
 	    	} else if (msg.equals("Disconnected")) {
 	    		p1.sendMsg("NO");
 				p1.setAvail(true);
 	    	}
-    	} catch (SocketTimeoutException e) {
+    	} catch (SocketTimeoutException e) { //Give them 30 seconds to respond
     		p1.sendMsg("NORESPONSE");
     		p2.sendMsg("NORESPONSE");
     		p1.setAvail(true);

@@ -124,15 +124,20 @@ class Intro extends JPanel implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		String name = nameinput.getText();
-		Pattern pattern = Pattern.compile("\\s");
-		Matcher matcher = pattern.matcher(name);
+		Pattern pattern1 = Pattern.compile("\\s");
+		Matcher matcher = pattern1.matcher(name);
 		boolean hasSpaces = matcher.find();
+		Pattern pattern2 = Pattern.compile("^[a-zA-Z0-9]*$");
+		Matcher matcher2 = pattern2.matcher(name);
+		boolean validChars = matcher2.find();
 		if (name.length() > 15) {
 			JOptionPane.showMessageDialog(frame, "This name is too long.");
 		} else if (name.length() == 0) {
 			JOptionPane.showMessageDialog(frame, "Your name must be longer.");
 		} else if (hasSpaces) {
 			JOptionPane.showMessageDialog(frame, "Names cannot have spaces.");
+		} else if (!validChars) {
+			JOptionPane.showMessageDialog(frame, "Please only use letters and numbers in your name.");
 		} else {
 			try {
 				if (client.isNameTaken(name)) {
@@ -149,5 +154,4 @@ class Intro extends JPanel implements ActionListener {
 			}
 		}
 	}
-	
 }
