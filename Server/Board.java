@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 /******************************************************* 
  * Board
@@ -44,13 +44,14 @@ public class Board {
 	 * Precondition: The column that is being added to is not full
 	 * Postcondition: The piece is added
 	 ************************************************************/
-	public void addPiece(int col, int type) {
+	public int addPiece(int col, int type) {
 		for (int y = 5; y >= 0; y--) {
 			if (board[col][y].getType() == 0) {
 				board[col][y].setType(type);
-				break;
+				return y;
 			}
 		}
+		return 0;
 	}
 	
 	/********************************************************************

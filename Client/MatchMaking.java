@@ -147,7 +147,7 @@ public class MatchMaking extends JPanel implements ActionListener {
     	JPanel top = new JPanel();
 		top.setPreferredSize(new Dimension(400, 75));
 		top.setLayout(new BoxLayout(top, BoxLayout.PAGE_AXIS));
-    	JLabel players = new JLabel("Welcome " + name + "!");
+    	JLabel players = new JLabel("<html>Welcome " + name + "!<br>To challenge a player, select their name and quickly press the 'Challenge' button.</html>");
     	//JLabel msg = new JLabel("<html><br>Available players:</html>");
     	//players.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     	//msg.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

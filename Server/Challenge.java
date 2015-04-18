@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 import java.net.SocketTimeoutException;
 
@@ -24,7 +24,7 @@ public class Challenge extends Thread {
     	this.p2 = p2;
     	this.p1.setAvail(false);
     	this.p2.setAvail(false);
-    	System.out.println("Challenge started between " + p1.getPName() + " and " + p2.getPName());
+    	System.out.println("Thread " + Thread.currentThread().getId() + ": Challenge started between " + p1.getPName() + " and " + p2.getPName());
     }
     
     /*************************************************
@@ -35,15 +35,15 @@ public class Challenge extends Thread {
     @Override
     public void run() {
     	try {
-	    	System.out.println(p2.readMsgTimeout());
+	    	p2.readMsg(); //Read the WHOCHALLENGED
 	    	p2.sendMsg(p1.getPName());
 	    	String msg = p2.readMsgTimeout();
 	    	if (msg.equals("OK")) {
 	    		if (p2.readMsg().equals("READY")) {
 	    			p2.sendMsg("OK");
 	    		}
-	    		new Game(p1, p2).start();
 				p1.sendMsg("STARTGAME");
+				new Game(p1, p2).start();
 				p1.setInGame(true);
 				p2.setInGame(true);
 	    	} else if (msg.equals("NO")) {
@@ -60,6 +60,8 @@ public class Challenge extends Thread {
     		p2.sendMsg("NORESPONSE");
     		p1.setAvail(true);
     		p2.setAvail(true);
-    	} 
+    	} finally {
+    		System.out.println("Thread " + Thread.currentThread().getId() + ": Challenge thread terminating");
+    	}
     }
 }

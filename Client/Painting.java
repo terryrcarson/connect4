@@ -66,13 +66,21 @@ public class Painting extends JComponent {
 		g.fillRect(10, 300, 30, 150);
 		g.fillRect(560, 300, 30, 150);
 		try {
-			switch (client.getCurrPlayer()) {
-				case RED:
-					g.setColor(Color.RED);
-					break;
-				case BLACK:
-					g.setColor(Color.BLACK);
-					break;
+			if (!isGameOver) {
+				switch (client.getCurrPlayer()) {
+					case RED:
+						g.setColor(Color.BLACK);
+						g.drawString(p1Name + "'s turn", 280, 15);
+						g.setColor(Color.RED);
+						break;
+					case BLACK:
+						g.setColor(Color.BLACK);
+						g.drawString(p2Name + "'s turn", 280, 15);
+						break;
+				}
+			} else {
+				g.setColor(Color.BLACK);
+				g.drawString("Game over!", 280, 15);
 			}
 		} catch (Exception ex) {
 			client.showDCError(prevFrame);

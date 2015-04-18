@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 import java.util.Vector;
 import java.util.StringTokenizer;
@@ -44,7 +44,7 @@ public class MatchmakingServer extends Thread {
      *************************************************************************************/
     public void addPlayer(Player p) {
     	players.addElement(p);
-    	System.out.println("Player added, there are now " + players.size() + " players");
+    	System.out.println("Thread " + Thread.currentThread().getId() + ": Player added, there are now " + players.size() + " players");
     }
     
     /******************************************************************************  
@@ -119,7 +119,7 @@ public class MatchmakingServer extends Thread {
 		private void removeDeadThreads() {
 	    	for (int i = 0; i < players.size(); i++) {
 				if (players.get(i).getDisconnected()) {
-	    			System.out.println("Player " + players.get(i).getPName() + " removed from list");
+	    			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + players.get(i).getPName() + " removed from list");
 	    			players.removeElementAt(i);
 	    		}
 	    	}
@@ -134,6 +134,7 @@ public class MatchmakingServer extends Thread {
 			for (int i = 0; i < players.size(); i++) {
 				players.get(i).updateAvailPlayers(players);
 			}
+			System.out.println("MatchMakingServer: Player lists synchronized");
 		}
 		
 		@Override

@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 /**************************************
  * Game
@@ -37,6 +37,7 @@ public class Game extends Thread {
 	 **********************************************************************************/
 	@Override
 	public void run() {
+		System.out.println("Game thread is here");
 		String msg;
 		while (checkWinner() == 0 && !Thread.currentThread().isInterrupted()) { //While the game is not over and nobody has disconnected
 			for (int i = 1; i < 3; i++) {
@@ -145,14 +146,18 @@ public class Game extends Thread {
 	 * Postcondition: The client's request is handled
 	 ******************************************************************************/
 	public void handleMsg(String msg, int i) {
-		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " + i+ ": " + msg);
+		int row;
+		//System.out.println(msg);
 		if (msg.startsWith("MOVE") && currPlayer == i) {
 			int dir = Integer.valueOf(msg.substring(5, 6));
 			movePiece(dir);
 		} else if (msg.startsWith("PLACE") && currPlayer == i) {
 			if (board.isColFull(currPieceLoc.getX())) {
 			} else {
-				board.addPiece(currPieceLoc.getX(), currPlayer);
+				row = board.addPiece(currPieceLoc.getX(), currPlayer);
+				for (int x = 1; x < 3; x++) {
+					player[x].sendMsg("PLACED " + currPieceLoc.getX() + " " + row);
+				}
 				switchPlayers();
 			}
 		} else if (msg.equals("REQUESTCURRPLAYER")) {
@@ -223,6 +228,7 @@ public class Game extends Thread {
 		public void run() {
 			System.out.println("Thread " + Thread.currentThread().getId() + ": final thread started");
 			while (!(msg = p.readMsg()).equals("DONE") && (!Thread.currentThread().isInterrupted())) {
+				//System.out.println(msg);
 				if (msg.equals("REQUESTCURRPLAYER")) {
 					p.sendMsg(String.valueOf(getCurrPlayer()));
 				} else if (msg.equals("REQUESTBOARD")) {

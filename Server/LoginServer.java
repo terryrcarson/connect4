@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,7 +55,7 @@ public class LoginServer {
     public void listenConnect() {
     	try {
     		Socket conn = servSock.accept();
-    		System.out.println("Connection from " + conn.getInetAddress());
+    		System.out.println("LoginServer: Connection from " + conn.getInetAddress());
     		matchmaker.addPlayer(new Player(conn, challengeQueue, ID, playerQueue));
     		ID++;
     	} catch (Exception e) {

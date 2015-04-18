@@ -20,7 +20,7 @@ import javax.swing.JPanel;
 
 public class Client {
 	
-	private final String SERVER_ADDRESS = "localhost"; //Edit this if needed
+	private final String SERVER_ADDRESS = "terrycarson.com"; //Edit this if needed
 	private final int PORT_NUMBER = 6664; //Edit this if needed
 	private Socket conn;
 	private PrintWriter out;
@@ -41,16 +41,28 @@ public class Client {
 		}
 	}
 	
+	public void flushSocketStream() throws ServerDisconnectedException {
+		try {
+			while (in.ready()) {
+				readMsg();
+			}
+		} catch (Exception e) {
+			throw new ServerDisconnectedException();
+		}		
+	}
+	
 	public void resetGameOver() {
 		isGameOver = false;
 	}
 	
-	public String readMsg() throws ServerDisconnectedException {
+	public String readMsg() throws ServerDisconnectedException, PiecePlacedException {
 		try {
 			String msg = in.readLine();
 			if (msg.startsWith("GAMEOVER")) {
 				isGameOver = true;
 				System.out.println("Game over is now true");
+			} else if (msg.startsWith("PLACED")) {
+				throw new PiecePlacedException(new Cell(Integer.parseInt(msg.substring(7,8)), Integer.parseInt(msg.substring(9, 10))));
 			}
 			System.out.println(msg.replaceAll("[^-0-9 A-Za-z.]", "") + " received");
 			return msg.replaceAll("[^-0-9 A-Za-z.]", "");
@@ -75,7 +87,7 @@ public class Client {
 		 }
 	}
 	
-	public int getCurrPlayer() throws Exception {
+	public int getCurrPlayer() throws Exception, PiecePlacedException {
 		try {
 			sendMsg("REQUESTCURRPLAYER");
 			String msg = readMsg();
@@ -85,7 +97,9 @@ public class Client {
 			return Character.getNumericValue(msg.charAt(0));
 		} catch (ServerDisconnectedException e) {
 			throw new Exception("Server disconnected");
-		} catch (NullPointerException e) {
+		} catch (PiecePlacedException e) {
+			throw new PiecePlacedException(e.getLoc());
+ 		} catch (NullPointerException e) {
 			isGameOver = true;
 		} catch (Exception e) {
 			System.err.println(e);
@@ -93,7 +107,7 @@ public class Client {
 		return 0;
 	}
 	
-	public Cell getPieceLoc() throws Exception {
+	public Cell getPieceLoc() throws Exception, PiecePlacedException {
 		try {
 			sendMsg("REQUESTPIECELOC");
 			String msg = readMsg();
@@ -101,12 +115,14 @@ public class Client {
 				msg = readMsg();
 			} 
 			if (msg.equals("-1-1")) {
-				return new Cell(-1, -1);
+				return new Cell(-5, -5);
 			}
 			int x = Character.getNumericValue(msg.charAt(0));
 			int y = Character.getNumericValue(msg.charAt(1));
 			System.out.println("x: " + x + ", y: " + y);
 			return new Cell(x, y);
+		} catch (PiecePlacedException e) {
+			throw new PiecePlacedException(e.getLoc());
 		} catch (ServerDisconnectedException e) {
 			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {
@@ -117,13 +133,15 @@ public class Client {
 		return null;
 	}
 	
-	public Cell[][] getBoard() throws Exception {
+	public Cell[][] getBoard() throws Exception, PiecePlacedException {
 		Cell[][] board = new Cell[7][6];
 		int i = 0;
 		try {
 			sendMsg("REQUESTBOARD");
 			String msg = readMsg();
 			if (msg.startsWith("GAMEOVER")) {
+				msg = readMsg();
+			} else if (msg.startsWith("PLACED")) {
 				msg = readMsg();
 			}
 			for (int x = 0; x < 7; x++) {
@@ -134,6 +152,8 @@ public class Client {
 				}
 			}
 			return board;
+		} catch (PiecePlacedException e) {
+			throw new PiecePlacedException(e.getLoc());
 		} catch (ServerDisconnectedException e) {
 			throw new Exception("Server disconnected");
 		} catch (NullPointerException e) {

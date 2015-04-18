@@ -1,4 +1,4 @@
-package Server;
+//package Server;
 
 import java.net.Socket;
 import java.net.SocketException;
@@ -141,14 +141,15 @@ public class Player extends Thread {
      * Precondition: There is a player in the list with the name being searched for
      * Postcondition: The player that was being searched for for is returned
      *****************************************************************************/
-    private Player getPlayerByName(String name) {
+    private Player getPlayerByName(String theName) {
     	if (players.size() == 0) {
     		return null;
     	}
     	for (int i = 0; i < players.size(); i++) {
     		if (players.get(i).getPName() == null) {
 			}
-    		else if (players.get(i).getPName().equals(name)) {
+    		else if (players.get(i).getPName().equals(theName)) {
+    			System.out.println("player found");
     			return players.get(i);
     		}
     	}
@@ -182,7 +183,6 @@ public class Player extends Thread {
     	synchronized (playerQueue) {
     		try {
     			playerQueue.add("DISCONNECTED");
-    			System.out.println("termination sent");
     		} catch (Exception e) {}
     		playerQueue.notify();
     	}
@@ -258,11 +258,21 @@ public class Player extends Thread {
      **************************************************/
     public void sendMsg(String msg) {
 		 try {
+		 	//System.out.println(msg);
 	    	out.println(msg);
-	    	System.out.println("Thread " + Thread.currentThread().getId() + ": " + msg + " sent");
 		 } catch (Exception e) {
 			System.err.println(e);
 		 }
+	}
+	
+	private void shutdown() {
+		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
+		Thread.currentThread().interrupt();
+		isDisconnected = true;
+		sendDisconnect();
+		try {
+			conn.close();
+		} catch (Exception e) {} //No need to handle this error, the connection is already broken
 	}
     
     /*******************************************************************
@@ -277,16 +287,10 @@ public class Player extends Thread {
 		try {
 			return in.readLine().replaceAll("[^0-9 A-Za-z.]", "");
 		} catch (NullPointerException e) {
-			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
-			Thread.currentThread().interrupt();
-			isDisconnected = true;
-			sendDisconnect();
+			shutdown();
 			return "Disconnected";
     	} catch (SocketException e) {
-    		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
-			Thread.currentThread().interrupt();
-			isDisconnected = true;
-			sendDisconnect();
+    		shutdown();
 			return "Disconnected";
     	} catch (IOException e) {
 			System.err.println(e);
@@ -310,17 +314,11 @@ public class Player extends Thread {
 		} catch (SocketTimeoutException e) {
 			throw new SocketTimeoutException();
 		} catch (NullPointerException e) {
-			System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
-			Thread.currentThread().interrupt();
-			isDisconnected = true;
-			sendDisconnect();
+			shutdown();
 			return "Disconnected";
     	} catch (SocketException e) {
-    		System.out.println("Thread " + Thread.currentThread().getId() + ": Player " +  ID + " has disconnected");
-			Thread.currentThread().interrupt();
-			isDisconnected = true;
-			sendDisconnect();
-			return "Disconnected";
+	    	shutdown();
+	    	return "Disconnected";
     	} catch (IOException e) {
 			System.err.println(e);
 		} finally {
