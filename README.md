@@ -1,0 +1,1 @@
+Multithreaded server/client pair which allows many users to simultaneously challenge each other over the internet to games of Connect-4. Utilizes Java's concurrency tools to facilitate communication between separate server elements and to permit the execution of multiple games at once.
